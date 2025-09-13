@@ -15,7 +15,6 @@ interface NavBarProps {
 
 export function NavBar({ onShowSymptomChecker }: NavBarProps) {
   const [location] = useLocation();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
     { href: '/symptom-checker', label: 'Symptom Checker', icon: 'fas fa-stethoscope' },
@@ -55,34 +54,15 @@ export function NavBar({ onShowSymptomChecker }: NavBarProps) {
             </div>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-1 xl:space-x-2">
-            {navItems.map((item) => (
-              <Link key={item.href} href={item.href}>
-                <Button
-                  variant={isActive(item.href) ? "default" : "ghost"}
-                  className={`flex items-center space-x-2 px-3 xl:px-4 py-2 text-sm xl:text-base transition-all ${
-                    isActive(item.href) 
-                      ? 'bg-blue-600 text-white shadow-md' 
-                      : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
-                  }`}
-                  data-testid={`nav-${item.href.replace('/', '') || 'home'}`}
-                >
-                  <i className={item.icon}></i>
-                  <span className="whitespace-nowrap">{item.label}</span>
-                </Button>
-              </Link>
-            ))}
-          </div>
 
           {/* Right Side Actions */}
-          <div className="flex items-center space-x-2 lg:space-x-3 xl:space-x-4">
+          <div className="flex items-center space-x-3">
             {/* Language Selector */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="lg:px-3 xl:px-4" data-testid="button-language">
-                  <i className="fas fa-globe mr-1 lg:mr-2"></i>
-                  <span className="hidden md:inline">Language</span>
+                <Button variant="outline" size="sm" className="px-3" data-testid="button-language">
+                  <i className="fas fa-globe mr-2"></i>
+                  <span className="hidden sm:inline">Language</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -95,55 +75,37 @@ export function NavBar({ onShowSymptomChecker }: NavBarProps) {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Emergency Button */}
-            <Button 
-              variant="destructive" 
-              size="sm"
-              className="lg:px-3 xl:px-4 font-medium"
-              onClick={() => window.open('tel:108')}
-              data-testid="button-emergency-nav"
-            >
-              <i className="fas fa-phone-alt mr-1 lg:mr-2"></i>
-              <span className="hidden md:inline">Emergency</span>
-            </Button>
-
-            {/* Mobile Menu Button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="lg:hidden"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              data-testid="button-mobile-menu"
-            >
-              <i className={`fas ${isMobileMenuOpen ? 'fa-times' : 'fa-bars'}`}></i>
-            </Button>
+            {/* Features Menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700 px-3" data-testid="button-features-menu">
+                  <i className="fas fa-bars mr-2"></i>
+                  <span className="hidden sm:inline">Features</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                {navItems.map((item) => (
+                  <Link key={item.href} href={item.href}>
+                    <DropdownMenuItem className="flex items-center space-x-3 p-3 cursor-pointer" data-testid={`menu-${item.href.replace('/', '')}`}>
+                      <i className={`${item.icon} text-blue-600 w-4`}></i>
+                      <span className="font-medium">{item.label}</span>
+                    </DropdownMenuItem>
+                  </Link>
+                ))}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  className="flex items-center space-x-3 p-3 cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
+                  onClick={() => window.open('tel:108')}
+                  data-testid="menu-emergency"
+                >
+                  <i className="fas fa-phone-alt w-4"></i>
+                  <span className="font-medium">Emergency: 108</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
-        {/* Mobile Navigation */}
-        {isMobileMenuOpen && (
-          <div className="lg:hidden py-3 sm:py-4 border-t border-gray-200 bg-gray-50" data-testid="mobile-menu">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-              {navItems.map((item) => (
-                <Link key={item.href} href={item.href}>
-                  <Button
-                    variant={isActive(item.href) ? "default" : "outline"}
-                    className={`w-full flex items-center justify-start space-x-3 px-4 py-3 text-sm font-medium ${
-                      isActive(item.href) 
-                        ? 'bg-blue-600 text-white shadow-md' 
-                        : 'text-gray-700 hover:text-blue-600 bg-white border-gray-300'
-                    }`}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    data-testid={`mobile-nav-${item.href.replace('/', '') || 'home'}`}
-                  >
-                    <i className={`${item.icon} text-base`}></i>
-                    <span>{item.label}</span>
-                  </Button>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </nav>
   );

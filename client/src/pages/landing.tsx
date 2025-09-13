@@ -80,8 +80,7 @@ export default function Landing() {
               </Link>
               <Button 
                 size="lg" 
-                variant="outline" 
-                className="w-full sm:w-auto border-2 border-white text-white hover:bg-white/10 px-6 sm:px-8 lg:px-10 py-3 sm:py-4 text-base sm:text-lg lg:text-xl font-medium transition-all"
+                className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white border-2 border-red-600 hover:border-red-700 px-6 sm:px-8 lg:px-10 py-3 sm:py-4 text-base sm:text-lg lg:text-xl font-medium transition-all shadow-lg"
                 data-testid="button-emergency"
                 onClick={() => window.open('tel:108')}
               >
