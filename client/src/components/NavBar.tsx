@@ -18,7 +18,6 @@ export function NavBar({ onShowSymptomChecker }: NavBarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
-    { href: '/chat', label: 'Health Chat', icon: 'fas fa-comments' },
     { href: '/symptom-checker', label: 'Symptom Checker', icon: 'fas fa-stethoscope' },
     { href: '/medications', label: 'Medications', icon: 'fas fa-pills' },
     { href: '/health-centers', label: 'Find Centers', icon: 'fas fa-map-marker-alt' },
