@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChatMessage } from '@/lib/gemini';
 import { TypingIndicator } from '@/components/ui/typing-indicator';
@@ -14,6 +14,7 @@ interface ChatInterfaceProps {
 export function ChatInterface({ messages, isLoading, onClearChat }: ChatInterfaceProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
+  const [isHealthTipVisible, setIsHealthTipVisible] = useState(true);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -44,24 +45,37 @@ export function ChatInterface({ messages, isLoading, onClearChat }: ChatInterfac
   return (
     <>
       {/* Enhanced Health Alert Banner */}
-      <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-amber-400 p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center mr-3">
-              <i className="fas fa-bell text-amber-600"></i>
+      {isHealthTipVisible && (
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.3 }}
+          className="bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-amber-400 p-4"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center mr-3">
+                <i className="fas fa-bell text-amber-600"></i>
+              </div>
+              <div>
+                <p className="text-amber-900 text-sm font-medium">
+                  Health Tip: Stay hydrated and maintain a balanced diet for better immunity
+                </p>
+                <p className="text-amber-700 text-xs mt-1">Updated health guidelines available</p>
+              </div>
             </div>
-            <div>
-              <p className="text-amber-900 text-sm font-medium">
-                Health Tip: Stay hydrated and maintain a balanced diet for better immunity
-              </p>
-              <p className="text-amber-700 text-xs mt-1">Updated health guidelines available</p>
-            </div>
+            <button 
+              onClick={() => setIsHealthTipVisible(false)}
+              className="text-amber-600 hover:text-amber-800 p-1 rounded transition-colors duration-200 hover:bg-amber-100" 
+              data-testid="button-dismiss-alert"
+              title="Dismiss health tip"
+            >
+              <i className="fas fa-times"></i>
+            </button>
           </div>
-          <button className="text-amber-600 hover:text-amber-800 p-1 rounded" data-testid="button-dismiss-alert">
-            <i className="fas fa-times"></i>
-          </button>
-        </div>
-      </div>
+        </motion.div>
+      )}
 
       {/* Enhanced Chat Messages Area */}
       <div className="flex-1 overflow-y-auto p-6 space-y-6 min-h-0 chat-scroll">
