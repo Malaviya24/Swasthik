@@ -229,7 +229,7 @@ export default function Landing() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-6 sm:mt-8 lg:mt-12 pt-6 sm:pt-8 text-center text-gray-400">
-            <p className="text-xs sm:text-sm">&copy; 2024 Swasthik. Bridging healthcare gaps with AI technology.</p>
+            <p className="text-xs sm:text-sm">&copy; 2025 Swasthik. Bridging healthcare gaps with AI technology.</p>
           </div>
         </div>
       </footer>
