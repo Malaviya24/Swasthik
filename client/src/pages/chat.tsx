@@ -91,37 +91,63 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
   };
 
   return (
-    <div className="flex h-screen overflow-hidden" data-testid="page-chat">
-      {/* Mobile Menu Button */}
-      <button 
-        onClick={() => setIsSidebarOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-50 bg-primary text-primary-foreground p-2 rounded-lg shadow-lg"
-        data-testid="button-mobile-menu"
-      >
-        <i className="fas fa-bars"></i>
-      </button>
+    <div className="flex flex-col h-screen bg-gray-50" data-testid="page-chat">
+      {/* Chat Container */}
+      <div className="flex-1 max-w-6xl mx-auto w-full bg-white shadow-lg rounded-t-lg overflow-hidden">
+        {/* Chat Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-green-600 text-white p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                <i className="fas fa-robot text-lg"></i>
+              </div>
+              <div>
+                <h2 className="font-semibold text-lg">Swasthya Mitra AI</h2>
+                <p className="text-sm text-blue-100">
+                  <span className="inline-block w-2 h-2 bg-green-400 rounded-full mr-2"></span>
+                  Online - Ready to help
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Button 
+                onClick={() => setShowSymptomChecker(true)}
+                variant="secondary"
+                size="sm"
+                className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                data-testid="button-symptom-checker"
+              >
+                <i className="fas fa-stethoscope mr-2"></i>
+                Symptom Checker
+              </Button>
+              <Button 
+                onClick={clearChat}
+                variant="secondary"
+                size="sm"
+                className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                data-testid="button-clear-chat"
+              >
+                <i className="fas fa-trash mr-2"></i>
+                Clear
+              </Button>
+            </div>
+          </div>
+        </div>
 
-      {/* Sidebar */}
-      <Sidebar
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        onShowSymptomChecker={() => setShowSymptomChecker(true)}
-      />
-
-      {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col">
-        <ChatInterface
-          messages={messages}
-          isLoading={isLoading}
-          onClearChat={clearChat}
-        />
-        
-        <MessageInput
-          onSendMessage={sendMessage}
-          disabled={isLoading}
-        />
+        {/* Main Chat Area */}
+        <div className="flex-1 flex flex-col h-[calc(100vh-12rem)]">
+          <ChatInterface
+            messages={messages}
+            isLoading={isLoading}
+            onClearChat={clearChat}
+          />
+          
+          <MessageInput
+            onSendMessage={sendMessage}
+            disabled={isLoading}
+          />
+        </div>
       </div>
 
       {/* Symptom Checker Modal */}
@@ -130,15 +156,6 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
         onOpenChange={setShowSymptomChecker}
         onResultReady={handleSymptomAnalysis}
       />
-
-      {/* Mobile Sidebar Overlay */}
-      {isSidebarOpen && (
-        <div 
-          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
-          onClick={() => setIsSidebarOpen(false)}
-          data-testid="overlay-sidebar"
-        />
-      )}
     </div>
   );
 }
