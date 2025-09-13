@@ -46,7 +46,7 @@ export function Sidebar({ isOpen, onClose, activeTab, onTabChange, onShowSymptom
       <div className="p-6 border-b border-border">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-foreground">Swasthya Mitra</h1>
+            <h1 className="text-xl font-bold text-foreground">Swasthik</h1>
             <p className="text-sm text-muted-foreground">AI Healthcare Assistant</p>
           </div>
           <button 

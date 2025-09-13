@@ -1,10 +1,10 @@
 see this was my project overview we made a webapp but how first explain all step by step how we made ?
  
-Swasthya Mitra: The AI Healthcare Chatbot
+Swasthik: The AI Healthcare Chatbot
 Documentation for the AI-powered chatbot designed for rural and semi-urban communities.
 
 1. Project Overview
-The **Swasthya Mitra** (Health Friend) project is a web-based, multilingual AI chatbot. Its primary purpose is to achieve **80% accuracy** in health query responses and a **20% increase** in health awareness in target communities. This solution leverages modern web technologies and powerful AI models to deliver a robust and scalable application. This updated version introduces new communication channels and advanced AI features.
+The **Swasthik** (Health Friend) project is a web-based, multilingual AI chatbot. Its primary purpose is to achieve **80% accuracy** in health query responses and a **20% increase** in health awareness in target communities. This solution leverages modern web technologies and powerful AI models to deliver a robust and scalable application. This updated version introduces new communication channels and advanced AI features.
 
 2. Key Features
 **Conversational AI:** The system uses a dedicated NLP framework to understand user intent before generating responses with the Gemini API, ensuring higher accuracy.
@@ -80,7 +80,7 @@ This flowchart illustrates the end-to-end process of a user's query, showing how
 7. Wireframe Diagram
 This wireframe outlines the main layout of the web application's chat interface, designed for a clean and intuitive user experience.
 
-Swasthya Mitra
+Swasthik
 User: userId12345
 Real-time Health Alert Banner: "New vaccine guidelines released. Click here to learn more."
 User: Hi, what are the symptoms of dengue fever?

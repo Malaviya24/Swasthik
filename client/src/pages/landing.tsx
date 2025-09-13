@@ -58,10 +58,10 @@ export default function Landing() {
               </div>
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6 leading-tight" data-testid="heading-hero">
-              Swasthya Mitra
+              Swasthik
             </h1>
             <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl mb-3 sm:mb-4 text-blue-100">
-              स्वास्थ्य मित्र - Your AI Healthcare Assistant
+              स्वास्थिक - Your AI Healthcare Assistant
             </p>
             <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-6 sm:mb-8 max-w-xs sm:max-w-2xl lg:max-w-4xl mx-auto text-blue-50 leading-relaxed px-4">
               Get instant health guidance, symptom analysis, and medical information in your preferred language. 
@@ -180,7 +180,7 @@ export default function Landing() {
             Ready to Start Your Health Journey?
           </h2>
           <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-6 sm:mb-8 lg:mb-10 text-blue-100 max-w-2xl mx-auto leading-relaxed">
-            Join thousands of users who trust Swasthya Mitra for their healthcare needs
+            Join thousands of users who trust Swasthik for their healthcare needs
           </p>
           <Link href="/chat">
             <Button 
@@ -200,7 +200,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-12">
             <div className="sm:col-span-2 lg:col-span-1">
-              <h3 className="text-lg sm:text-xl lg:text-2xl font-bold mb-3 sm:mb-4">Swasthya Mitra</h3>
+              <h3 className="text-lg sm:text-xl lg:text-2xl font-bold mb-3 sm:mb-4">Swasthik</h3>
               <p className="text-gray-400 text-sm sm:text-base leading-relaxed">
                 AI-powered healthcare assistant designed for Indian communities. 
                 Providing accessible health information and guidance.
@@ -229,7 +229,7 @@ export default function Landing() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-6 sm:mt-8 lg:mt-12 pt-6 sm:pt-8 text-center text-gray-400">
-            <p className="text-xs sm:text-sm">&copy; 2024 Swasthya Mitra. Bridging healthcare gaps with AI technology.</p>
+            <p className="text-xs sm:text-sm">&copy; 2024 Swasthik. Bridging healthcare gaps with AI technology.</p>
           </div>
         </div>
       </footer>

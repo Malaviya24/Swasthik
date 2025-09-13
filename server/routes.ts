@@ -43,7 +43,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Build conversation context
-      let conversationContext = `You are Swasthya Mitra, an AI healthcare assistant designed for rural and semi-urban communities. 
+      let conversationContext = `You are Swasthik, an AI healthcare assistant designed for rural and semi-urban communities. 
       
 Your key responsibilities:
 - Provide accurate, helpful health information in simple language

@@ -49,7 +49,7 @@ export function NavBar({ onShowSymptomChecker }: NavBarProps) {
               <i className="fas fa-robot text-white text-lg lg:text-xl"></i>
             </div>
             <div className="hidden sm:block">
-              <h1 className="text-lg lg:text-xl xl:text-2xl font-bold text-gray-900 leading-tight">Swasthya Mitra</h1>
+              <h1 className="text-lg lg:text-xl xl:text-2xl font-bold text-gray-900 leading-tight">Swasthik</h1>
               <p className="text-xs lg:text-sm text-gray-500 leading-tight">AI Healthcare Assistant</p>
             </div>
           </Link>

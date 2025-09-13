@@ -6,7 +6,7 @@ export function useChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: 'assistant',
-      content: `🙏 Namaste! I'm your Swasthya Mitra (Health Friend). I'm here to help you with:
+      content: `🙏 Namaste! I'm your Swasthik (Health Friend). I'm here to help you with:
 
 • Health questions & symptoms
 • Medicine information  
@@ -55,7 +55,7 @@ export function useChat() {
     setMessages([
       {
         role: 'assistant',
-        content: `🙏 Namaste! I'm your Swasthya Mitra (Health Friend). I'm here to help you with:
+        content: `🙏 Namaste! I'm your Swasthik (Health Friend). I'm here to help you with:
 
 • Health questions & symptoms
 • Medicine information  

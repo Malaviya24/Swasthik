@@ -38,7 +38,7 @@ export default function Chat() {
             <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white mx-auto mb-4">
               <i className="fas fa-robot text-2xl"></i>
             </div>
-            <CardTitle className="text-2xl">Welcome to Swasthya Mitra</CardTitle>
+            <CardTitle className="text-2xl">Welcome to Swasthik</CardTitle>
             <p className="text-muted-foreground">Your AI Healthcare Assistant</p>
           </CardHeader>
           <CardContent>
@@ -106,7 +106,7 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                   <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 rounded-full border-2 border-white animate-pulse"></div>
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-white">Swasthya Mitra AI</h1>
+                  <h1 className="text-xl font-bold text-white">Swasthik AI</h1>
                   <p className="text-blue-100 text-sm flex items-center gap-2">
                     <span className="w-2 h-2 bg-green-400 rounded-full"></span>
                     Online • Ready to assist with your health

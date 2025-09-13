@@ -1,6 +1,6 @@
 # Overview
 
-Swasthya Mitra is an AI-powered healthcare chatbot web application designed specifically for rural and semi-urban communities. The application provides multilingual health assistance, symptom checking, medication information, voice interactions, and image analysis capabilities. It aims to achieve 80% accuracy in health query responses while maintaining appropriate medical disclaimers and encouraging users to consult healthcare professionals for serious concerns.
+Swasthik is an AI-powered healthcare chatbot web application designed specifically for rural and semi-urban communities. The application provides multilingual health assistance, symptom checking, medication information, voice interactions, and image analysis capabilities. It aims to achieve 80% accuracy in health query responses while maintaining appropriate medical disclaimers and encouraging users to consult healthcare professionals for serious concerns.
 
 # User Preferences
 

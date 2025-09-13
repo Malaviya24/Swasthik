@@ -70,7 +70,7 @@ export function ChatInterface({ messages, isLoading, onClearChat }: ChatInterfac
             <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-green-100 rounded-3xl flex items-center justify-center mb-6">
               <i className="fas fa-comments text-3xl text-blue-600"></i>
             </div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">Welcome to Swasthya Mitra</h3>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">Welcome to Swasthik</h3>
             <p className="text-gray-600 mb-6 max-w-md">Your personal AI health assistant. Ask me anything about your health concerns, symptoms, or medical questions.</p>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="bg-blue-50 p-3 rounded-lg">
