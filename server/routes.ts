@@ -3,10 +3,32 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { GoogleGenAI } from "@google/genai";
 import multer from "multer";
-import { insertMessageSchema, insertConversationSchema } from "@shared/schema";
+import { 
+  insertMessageSchema, 
+  insertConversationSchema, 
+  insertReminderSchema,
+  symptomAnalysisSchema,
+  medicationSearchSchema,
+  healthCenterSearchSchema,
+  type Medication,
+  type HealthCenter
+} from "@shared/schema";
 import { z } from "zod";
 
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'audio/wav', 'audio/mp3', 'audio/mpeg'];
+    if (allowedMimeTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Unsupported file type'));
+    }
+  }
+});
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -98,11 +120,12 @@ Please provide a helpful analysis while including these important disclaimers:
   // Symptom analysis endpoint  
   app.post('/api/analyze-symptoms', async (req, res) => {
     try {
-      const { age, gender, symptoms, duration } = req.body;
-      
-      if (!symptoms) {
-        return res.status(400).json({ error: 'Symptoms description is required' });
+      const validationResult = symptomAnalysisSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ error: validationResult.error.issues[0].message });
       }
+
+      const { age, gender, symptoms, duration } = validationResult.data;
 
       const prompt = `As a healthcare AI assistant, analyze these symptoms: ${symptoms}
       ${age ? `Patient age: ${age}` : ''}
@@ -126,7 +149,7 @@ Please provide a helpful analysis while including these important disclaimers:
         contents: prompt,
       });
 
-      // Mock structured response for demo
+      // Mock structured response for demo that matches frontend expectations
       const analysis = {
         possibleConditions: [
           "Common cold or flu",
@@ -151,50 +174,6 @@ Please provide a helpful analysis while including these important disclaimers:
     }
   });
 
-  // Medication information endpoint
-  app.post('/api/medication-info', async (req, res) => {
-    try {
-      const { medicationName } = req.body;
-      
-      if (!medicationName) {
-        return res.status(400).json({ error: 'Medication name is required' });
-      }
-
-      const prompt = `Provide information about the medication "${medicationName}" in JSON format with these fields:
-- name: Medication name
-- uses: Array of common medical uses
-- dosage: General dosage information (mention consulting doctor)
-- sideEffects: Array of common side effects
-- warnings: Array of important warnings and precautions
-
-Important: Always include disclaimers about consulting healthcare professionals and not replacing medical advice.`;
-
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: "object",
-            properties: {
-              name: { type: "string" },
-              uses: { type: "array", items: { type: "string" } },
-              dosage: { type: "string" },
-              sideEffects: { type: "array", items: { type: "string" } },
-              warnings: { type: "array", items: { type: "string" } },
-            },
-            required: ["name", "uses", "dosage", "sideEffects", "warnings"],
-          },
-        },
-        contents: prompt,
-      });
-
-      const info = JSON.parse(response.text || '{}');
-      res.json({ info });
-    } catch (error) {
-      console.error('Medication info error:', error);
-      res.status(500).json({ error: 'Failed to get medication information' });
-    }
-  });
 
   // Health center finder endpoint
   app.post('/api/find-health-centers', async (req, res) => {
@@ -299,12 +278,12 @@ Important: Always include disclaimers about consulting healthcare professionals 
   // Medication search endpoint
   app.get('/api/medications/search', async (req, res) => {
     try {
-      const { q } = req.query;
-      const query = typeof q === 'string' ? q : '';
-      
-      if (!query) {
+      const validationResult = medicationSearchSchema.safeParse({ q: req.query.q });
+      if (!validationResult.success) {
         return res.status(400).json({ error: 'Search query is required' });
       }
+
+      const { q: query } = validationResult.data;
 
       const prompt = `Provide information about the medication "${query}" in a structured format:
       - name: Medication name
@@ -324,8 +303,9 @@ Important: Always include disclaimers about consulting healthcare professionals 
         contents: prompt,
       });
 
-      // Mock structured response based on query
-      const medicationInfo = {
+      // Mock structured response based on query that matches frontend Medication type
+      const medicationInfo: Medication = {
+        id: `med_${Date.now()}`,
         name: query,
         genericName: query.includes('Paracetamol') ? 'Acetaminophen' : query,
         category: query.toLowerCase().includes('paracetamol') ? 'Pain Relief' : 
@@ -363,14 +343,15 @@ Important: Always include disclaimers about consulting healthcare professionals 
   // Health centers search endpoint
   app.post('/api/health-centers/search', async (req, res) => {
     try {
-      const { location, type } = req.body;
-      
-      if (!location) {
-        return res.status(400).json({ error: 'Location is required' });
+      const validationResult = healthCenterSearchSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ error: validationResult.error.issues[0].message });
       }
 
-      // Mock health centers data based on location
-      const mockHealthCenters = [
+      const { location, type } = validationResult.data;
+
+      // Mock health centers data based on location that matches frontend HealthCenter type
+      const mockHealthCenters: HealthCenter[] = [
         {
           id: '1',
           name: 'Apollo Hospital',
@@ -436,34 +417,28 @@ Important: Always include disclaimers about consulting healthcare professionals 
     }
   });
 
-  // Reminders CRUD endpoints
+  // Reminders CRUD endpoints using storage
   app.get('/api/reminders', async (req, res) => {
     try {
-      // Mock reminders data for demo
-      const mockReminders = [
-        {
-          id: '1',
-          title: 'Take Blood Pressure Medication',
-          type: 'medication',
-          description: 'Amlodipine 5mg - Take with breakfast',
-          time: '08:00',
-          frequency: 'daily',
-          active: true,
-          nextReminder: 'Today at 8:00 AM'
-        },
-        {
-          id: '2',
-          title: 'Doctor Appointment',
-          type: 'appointment',
-          description: 'Cardiology consultation - Dr. Smith',
-          time: '14:30',
-          frequency: 'monthly',
-          active: true,
-          nextReminder: 'March 15 at 2:30 PM'
-        }
-      ];
+      // For demo purposes, use a mock user ID
+      // In real app, get from authenticated session
+      const mockUserId = 'demo-user-123';
+      
+      const reminders = await storage.getUserReminders(mockUserId);
+      
+      // Convert storage reminders to frontend format
+      const formattedReminders = reminders.map(reminder => ({
+        id: reminder.id,
+        title: reminder.title,
+        type: reminder.reminderType,
+        description: reminder.description || '',
+        time: reminder.scheduledAt.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }),
+        frequency: 'daily', // Default since not in schema
+        active: reminder.isActive ?? true,
+        nextReminder: `${reminder.scheduledAt.toLocaleDateString()} at ${reminder.scheduledAt.toLocaleTimeString()}`
+      }));
 
-      res.json(mockReminders);
+      res.json(formattedReminders);
     } catch (error) {
       console.error('Reminders fetch error:', error);
       res.status(500).json({ error: 'Failed to fetch reminders' });
@@ -472,17 +447,31 @@ Important: Always include disclaimers about consulting healthcare professionals 
 
   app.post('/api/reminders', async (req, res) => {
     try {
-      const reminder = req.body;
+      const validationResult = insertReminderSchema.safeParse({
+        ...req.body,
+        userId: 'demo-user-123', // Mock user ID for demo
+        scheduledAt: new Date(req.body.scheduledAt || Date.now())
+      });
       
-      // In a real app, save to database
-      const newReminder = {
-        id: Date.now().toString(),
-        ...reminder,
-        active: true,
-        nextReminder: `Tomorrow at ${reminder.time}`
+      if (!validationResult.success) {
+        return res.status(400).json({ error: validationResult.error.issues[0].message });
+      }
+
+      const newReminder = await storage.createReminder(validationResult.data);
+      
+      // Convert to frontend format
+      const formattedReminder = {
+        id: newReminder.id,
+        title: newReminder.title,
+        type: newReminder.reminderType,
+        description: newReminder.description || '',
+        time: newReminder.scheduledAt.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }),
+        frequency: 'daily',
+        active: newReminder.isActive ?? true,
+        nextReminder: `${newReminder.scheduledAt.toLocaleDateString()} at ${newReminder.scheduledAt.toLocaleTimeString()}`
       };
 
-      res.json(newReminder);
+      res.json(formattedReminder);
     } catch (error) {
       console.error('Add reminder error:', error);
       res.status(500).json({ error: 'Failed to add reminder' });
@@ -492,10 +481,15 @@ Important: Always include disclaimers about consulting healthcare professionals 
   app.patch('/api/reminders/:id', async (req, res) => {
     try {
       const { id } = req.params;
-      const updates = req.body;
+      const { active } = req.body;
       
-      // In a real app, update in database
-      res.json({ id, ...updates });
+      const updatedReminder = await storage.updateReminder(id, { isActive: active });
+      
+      if (!updatedReminder) {
+        return res.status(404).json({ error: 'Reminder not found' });
+      }
+
+      res.json({ id, active });
     } catch (error) {
       console.error('Update reminder error:', error);
       res.status(500).json({ error: 'Failed to update reminder' });
@@ -506,7 +500,12 @@ Important: Always include disclaimers about consulting healthcare professionals 
     try {
       const { id } = req.params;
       
-      // In a real app, delete from database
+      const success = await storage.deleteReminder(id);
+      
+      if (!success) {
+        return res.status(404).json({ error: 'Reminder not found' });
+      }
+
       res.json({ success: true, id });
     } catch (error) {
       console.error('Delete reminder error:', error);

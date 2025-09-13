@@ -78,6 +78,49 @@ export const insertHealthRecordSchema = createInsertSchema(healthRecords).omit({
   createdAt: true,
 });
 
+// Additional schemas for health features
+export const medicationSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  genericName: z.string(),
+  category: z.string(),
+  description: z.string(),
+  dosage: z.string(),
+  sideEffects: z.array(z.string()),
+  precautions: z.array(z.string()),
+  interactions: z.array(z.string()),
+  price: z.string()
+});
+
+export const healthCenterSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  type: z.string(),
+  address: z.string(),
+  phone: z.string(),
+  rating: z.number(),
+  distance: z.string(),
+  specialties: z.array(z.string()),
+  timings: z.string(),
+  emergency: z.boolean()
+});
+
+export const symptomAnalysisSchema = z.object({
+  age: z.string().optional(),
+  gender: z.string().optional(),
+  symptoms: z.string(),
+  duration: z.string().optional()
+});
+
+export const medicationSearchSchema = z.object({
+  q: z.string().min(1, 'Search query is required')
+});
+
+export const healthCenterSearchSchema = z.object({
+  location: z.string().min(1, 'Location is required'),
+  type: z.string().optional()
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -89,3 +132,8 @@ export type Reminder = typeof reminders.$inferSelect;
 export type InsertReminder = z.infer<typeof insertReminderSchema>;
 export type HealthRecord = typeof healthRecords.$inferSelect;
 export type InsertHealthRecord = z.infer<typeof insertHealthRecordSchema>;
+export type Medication = z.infer<typeof medicationSchema>;
+export type HealthCenter = z.infer<typeof healthCenterSchema>;
+export type SymptomAnalysisRequest = z.infer<typeof symptomAnalysisSchema>;
+export type MedicationSearchRequest = z.infer<typeof medicationSearchSchema>;
+export type HealthCenterSearchRequest = z.infer<typeof healthCenterSearchSchema>;
