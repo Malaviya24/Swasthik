@@ -118,6 +118,41 @@ export async function getMedicationInfo(medicationName: string): Promise<Medicat
   }
 }
 
+export interface HealthCenter {
+  id: string;
+  name: string;
+  address: string;
+  phone: string;
+  type: string;
+  distance: number;
+  rating: number;
+  services: string[];
+  hours: string;
+  coordinates: { lat: number; lng: number };
+}
+
+export async function findHealthCenters(latitude: number, longitude: number, radius?: number): Promise<HealthCenter[]> {
+  try {
+    const response = await fetch('/api/find-health-centers', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ latitude, longitude, radius }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.healthCenters;
+  } catch (error) {
+    console.error('Error finding health centers:', error);
+    throw error;
+  }
+}
+
 export async function transcribeAudio(audioBlob: Blob): Promise<string> {
   try {
     const formData = new FormData();
