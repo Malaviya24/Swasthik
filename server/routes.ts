@@ -44,20 +44,139 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check if API key is available
       if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'your_gemini_api_key_here') {
+        // Provide helpful responses based on user input in demo mode
+        const userMessage = message.toLowerCase();
+        
+        if (userMessage.includes('hello') || userMessage.includes('hi') || userMessage.includes('namaste')) {
+          return res.json({ 
+            response: `🙏 Namaste! I'm Swasthik, your AI healthcare assistant. 
+
+I'm currently running in demo mode. I can help you with basic health information and guidance.
+
+What health concern can I help you with today?` 
+          });
+        }
+        
+        if (userMessage.includes('fever') || userMessage.includes('temperature')) {
+          return res.json({ 
+            response: `🌡️ **Fever Management (Demo Response)**
+
+**General Guidelines:**
+• Rest and stay hydrated
+• Monitor temperature regularly
+• Use cool compresses
+• Take paracetamol if needed (follow dosage instructions)
+
+**When to seek medical help:**
+• Fever above 103°F (39.4°C)
+• Fever lasting more than 3 days
+• Severe headache or neck stiffness
+• Difficulty breathing
+
+⚠️ **Important**: This is general information only. Always consult a healthcare professional for proper diagnosis and treatment.
+
+*To enable full AI chat with personalized responses, get a Google Gemini API key from https://aistudio.google.com/*` 
+          });
+        }
+        
+        if (userMessage.includes('headache') || userMessage.includes('head pain')) {
+          return res.json({ 
+            response: `🤕 **Headache Management (Demo Response)**
+
+**Common Causes:**
+• Stress and tension
+• Dehydration
+• Lack of sleep
+• Eye strain
+
+**Self-care Tips:**
+• Rest in a quiet, dark room
+• Apply cold compress to forehead
+• Stay hydrated
+• Practice relaxation techniques
+
+**When to seek medical help:**
+• Sudden, severe headache
+• Headache with fever or neck stiffness
+• Headache after head injury
+• Vision changes
+
+⚠️ **Important**: This is general information only. Always consult a healthcare professional for proper diagnosis and treatment.
+
+*To enable full AI chat with personalized responses, get a Google Gemini API key from https://aistudio.google.com/*` 
+          });
+        }
+        
+        if (userMessage.includes('cough') || userMessage.includes('cold')) {
+          return res.json({ 
+            response: `🤧 **Cough & Cold Management (Demo Response)**
+
+**Self-care Tips:**
+• Get plenty of rest
+• Stay hydrated (warm liquids help)
+• Use a humidifier
+• Gargle with salt water
+• Avoid smoking and irritants
+
+**When to seek medical help:**
+• Cough lasting more than 3 weeks
+• High fever
+• Difficulty breathing
+• Chest pain
+• Blood in phlegm
+
+⚠️ **Important**: This is general information only. Always consult a healthcare professional for proper diagnosis and treatment.
+
+*To enable full AI chat with personalized responses, get a Google Gemini API key from https://aistudio.google.com/*` 
+          });
+        }
+        
+        if (userMessage.includes('stomach') || userMessage.includes('abdominal') || userMessage.includes('pain')) {
+          return res.json({ 
+            response: `🤢 **Stomach Pain Management (Demo Response)**
+
+**Common Causes:**
+• Indigestion
+• Gas and bloating
+• Food poisoning
+• Stress
+
+**Self-care Tips:**
+• Eat small, frequent meals
+• Avoid spicy and fatty foods
+• Stay hydrated
+• Apply heat to the area
+• Practice relaxation techniques
+
+**When to seek medical help:**
+• Severe or persistent pain
+• Pain with fever
+• Vomiting blood
+• Difficulty breathing
+• Pain spreading to chest or back
+
+⚠️ **Important**: This is general information only. Always consult a healthcare professional for proper diagnosis and treatment.
+
+*To enable full AI chat with personalized responses, get a Google Gemini API key from https://aistudio.google.com/*` 
+          });
+        }
+        
+        // Default demo response
         return res.json({ 
           response: `🙏 Namaste! I'm Swasthik, your AI healthcare assistant. 
 
-I'm currently running in demo mode. To enable full AI chat functionality, please:
+I'm currently running in demo mode. I can help you with basic health information about:
 
-1. Get a Google Gemini API key from: https://aistudio.google.com/
+• **Fever & Temperature** - Ask about fever management
+• **Headaches** - Ask about headache relief
+• **Cough & Cold** - Ask about respiratory symptoms  
+• **Stomach Issues** - Ask about digestive problems
+• **General Health** - Ask about wellness tips
+
+**To enable full AI chat with personalized responses:**
+1. Get a Google Gemini API key from https://aistudio.google.com/
 2. Set the GEMINI_API_KEY environment variable
 3. Restart the server
-
-For now, I can help you with:
-• General health information
-• Symptom checking (basic)
-• Medication information
-• Finding health centers
 
 What health concern can I help you with today?` 
         });
