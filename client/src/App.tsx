@@ -6,6 +6,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { NavBar } from "@/components/NavBar";
 import Landing from "@/pages/landing";
 import Chat from "@/pages/chat";
+import SymptomCheckerPage from "@/pages/symptom-checker-page";
+import MedicationsPage from "@/pages/medications-page";
+import HealthCentersPage from "@/pages/health-centers-page";
+import RemindersPage from "@/pages/reminders-page";
+import HealthNewsPage from "@/pages/health-news-page";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -15,11 +20,11 @@ function Router() {
       <Switch>
         <Route path="/" component={Landing}/>
         <Route path="/chat" component={Chat}/>
-        <Route path="/symptom-checker" component={() => <div className="p-8"><h1>Symptom Checker - Coming Soon</h1></div>}/>
-        <Route path="/medications" component={() => <div className="p-8"><h1>Medications - Coming Soon</h1></div>}/>
-        <Route path="/health-centers" component={() => <div className="p-8"><h1>Health Centers - Coming Soon</h1></div>}/>
-        <Route path="/reminders" component={() => <div className="p-8"><h1>Reminders - Coming Soon</h1></div>}/>
-        <Route path="/health-news" component={() => <div className="p-8"><h1>Health News - Coming Soon</h1></div>}/>
+        <Route path="/symptom-checker" component={SymptomCheckerPage}/>
+        <Route path="/medications" component={MedicationsPage}/>
+        <Route path="/health-centers" component={HealthCentersPage}/>
+        <Route path="/reminders" component={RemindersPage}/>
+        <Route path="/health-news" component={HealthNewsPage}/>
         <Route component={NotFound} />
       </Switch>
     </div>

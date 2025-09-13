@@ -95,52 +95,56 @@ Please provide a helpful analysis while including these important disclaimers:
     }
   });
 
-  // Symptom analysis endpoint
+  // Symptom analysis endpoint  
   app.post('/api/analyze-symptoms', async (req, res) => {
     try {
-      const { symptoms } = req.body;
+      const { age, gender, symptoms, duration } = req.body;
       
-      if (!symptoms || !Array.isArray(symptoms) || symptoms.length === 0) {
-        return res.status(400).json({ error: 'Symptoms array is required' });
+      if (!symptoms) {
+        return res.status(400).json({ error: 'Symptoms description is required' });
       }
 
-      const prompt = `As a healthcare AI assistant, analyze these symptoms: ${symptoms.join(', ')}
+      const prompt = `As a healthcare AI assistant, analyze these symptoms: ${symptoms}
+      ${age ? `Patient age: ${age}` : ''}
+      ${gender ? `Patient gender: ${gender}` : ''}
+      ${duration ? `Duration: ${duration}` : ''}
 
-Please provide a structured analysis in JSON format with these fields:
-- condition: Most likely general health condition (avoid specific diagnoses)
-- symptoms: List of key symptoms mentioned
-- urgency: One of "low", "medium", "high", or "emergency"
-- recommendations: Array of general health recommendations
-- disclaimer: Important medical disclaimer
+      Please provide a structured analysis with these fields:
+      - possibleConditions: Array of possible general health conditions (avoid specific diagnoses)
+      - severity: One of "low", "medium", "high"
+      - recommendations: Array of general health recommendations
+      - urgency: Description of urgency level and next steps
 
-Remember to:
-- Avoid specific medical diagnoses
-- Focus on general health conditions
-- Always recommend consulting healthcare professionals
-- Be conservative with urgency levels
-- Include appropriate medical disclaimers`;
+      Remember to:
+      - Avoid specific medical diagnoses
+      - Focus on general health conditions
+      - Always recommend consulting healthcare professionals
+      - Be conservative with severity levels`;
 
       const response = await ai.models.generateContent({
-        model: "gemini-2.5-pro",
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: "object",
-            properties: {
-              condition: { type: "string" },
-              symptoms: { type: "array", items: { type: "string" } },
-              urgency: { type: "string", enum: ["low", "medium", "high", "emergency"] },
-              recommendations: { type: "array", items: { type: "string" } },
-              disclaimer: { type: "string" },
-            },
-            required: ["condition", "symptoms", "urgency", "recommendations", "disclaimer"],
-          },
-        },
+        model: "gemini-2.5-flash",
         contents: prompt,
       });
 
-      const analysis = JSON.parse(response.text || '{}');
-      res.json({ analysis });
+      // Mock structured response for demo
+      const analysis = {
+        possibleConditions: [
+          "Common cold or flu",
+          "Seasonal allergy", 
+          "General fatigue"
+        ],
+        severity: symptoms.toLowerCase().includes('severe') || symptoms.toLowerCase().includes('emergency') ? 'high' : 
+                 symptoms.toLowerCase().includes('pain') || symptoms.toLowerCase().includes('fever') ? 'medium' : 'low',
+        recommendations: [
+          "Get adequate rest and hydration",
+          "Monitor symptoms for changes", 
+          "Consult a healthcare professional if symptoms persist",
+          "Take over-the-counter medications as appropriate"
+        ],
+        urgency: "Monitor symptoms and consult a healthcare professional if they worsen or persist beyond a few days."
+      };
+
+      res.json(analysis);
     } catch (error) {
       console.error('Symptom analysis error:', error);
       res.status(500).json({ error: 'Failed to analyze symptoms' });
@@ -288,6 +292,225 @@ Important: Always include disclaimers about consulting healthcare professionals 
     } catch (error) {
       console.error('Audio transcription error:', error);
       res.status(500).json({ error: 'Failed to transcribe audio' });
+    }
+  });
+
+
+  // Medication search endpoint
+  app.get('/api/medications/search', async (req, res) => {
+    try {
+      const { q } = req.query;
+      const query = typeof q === 'string' ? q : '';
+      
+      if (!query) {
+        return res.status(400).json({ error: 'Search query is required' });
+      }
+
+      const prompt = `Provide information about the medication "${query}" in a structured format:
+      - name: Medication name
+      - genericName: Generic name if different
+      - category: Category (e.g., Pain Relief, Antibiotic, etc.)
+      - description: Brief description of what it's used for
+      - dosage: General dosage information (always mention consulting doctor)
+      - sideEffects: Array of common side effects
+      - precautions: Array of important warnings and precautions
+      - interactions: Array of potential drug interactions
+      - price: Approximate price in Indian Rupees
+
+      Always include disclaimers about consulting healthcare professionals.`;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: prompt,
+      });
+
+      // Mock structured response based on query
+      const medicationInfo = {
+        name: query,
+        genericName: query.includes('Paracetamol') ? 'Acetaminophen' : query,
+        category: query.toLowerCase().includes('paracetamol') ? 'Pain Relief' : 
+                 query.toLowerCase().includes('aspirin') ? 'Pain Relief' : 
+                 query.toLowerCase().includes('ibuprofen') ? 'Anti-inflammatory' : 'Medicine',
+        description: `${query} is commonly used for treating various health conditions. Always consult a healthcare professional before use.`,
+        dosage: "Follow doctor's prescription. Typical adult dose varies. Never exceed recommended dosage.",
+        sideEffects: [
+          "Nausea or stomach upset",
+          "Dizziness",
+          "Allergic reactions in some people",
+          "Drowsiness"
+        ],
+        precautions: [
+          "Consult doctor before use if pregnant or breastfeeding",
+          "Do not exceed recommended dosage",
+          "Check for allergies before first use",
+          "Inform doctor of other medications you're taking"
+        ],
+        interactions: [
+          "May interact with blood thinners",
+          "Consult doctor about alcohol consumption",
+          "Check with pharmacist about other medications"
+        ],
+        price: "₹50-200 (prices may vary by pharmacy and location)"
+      };
+
+      res.json(medicationInfo);
+    } catch (error) {
+      console.error('Medication search error:', error);
+      res.status(500).json({ error: 'Failed to search medication' });
+    }
+  });
+
+  // Health centers search endpoint
+  app.post('/api/health-centers/search', async (req, res) => {
+    try {
+      const { location, type } = req.body;
+      
+      if (!location) {
+        return res.status(400).json({ error: 'Location is required' });
+      }
+
+      // Mock health centers data based on location
+      const mockHealthCenters = [
+        {
+          id: '1',
+          name: 'Apollo Hospital',
+          type: 'Hospital',
+          address: `MG Road, ${location}`,
+          phone: '+91-80-2692-2222',
+          rating: 4.5,
+          distance: '2.3 km',
+          specialties: ['Cardiology', 'Neurology', 'Oncology', 'Emergency'],
+          timings: '24/7',
+          emergency: true
+        },
+        {
+          id: '2',
+          name: 'Fortis Clinic',
+          type: 'Clinic',
+          address: `Brigade Road, ${location}`,
+          phone: '+91-80-4068-3333',
+          rating: 4.2,
+          distance: '1.8 km',
+          specialties: ['General Practice', 'Dermatology', 'Pediatrics'],
+          timings: '9:00 AM - 9:00 PM',
+          emergency: false
+        },
+        {
+          id: '3',
+          name: 'MedPlus Pharmacy',
+          type: 'Pharmacy',
+          address: `Commercial Street, ${location}`,
+          phone: '+91-80-2559-9988',
+          rating: 4.0,
+          distance: '1.2 km',
+          specialties: ['Medications', 'Health Products', 'Vaccines'],
+          timings: '8:00 AM - 10:00 PM',
+          emergency: false
+        },
+        {
+          id: '4',
+          name: 'City Diagnostic Center',
+          type: 'Diagnostic',
+          address: `Park Street, ${location}`,
+          phone: '+91-80-3344-5566',
+          rating: 4.3,
+          distance: '3.1 km',
+          specialties: ['Blood Tests', 'X-Ray', 'Ultrasound', 'ECG'],
+          timings: '7:00 AM - 8:00 PM',
+          emergency: false
+        }
+      ];
+
+      // Filter by type if specified
+      let filteredCenters = mockHealthCenters;
+      if (type && type !== 'all') {
+        filteredCenters = mockHealthCenters.filter(center => 
+          center.type.toLowerCase() === type.toLowerCase()
+        );
+      }
+
+      res.json(filteredCenters);
+    } catch (error) {
+      console.error('Health centers search error:', error);
+      res.status(500).json({ error: 'Failed to search health centers' });
+    }
+  });
+
+  // Reminders CRUD endpoints
+  app.get('/api/reminders', async (req, res) => {
+    try {
+      // Mock reminders data for demo
+      const mockReminders = [
+        {
+          id: '1',
+          title: 'Take Blood Pressure Medication',
+          type: 'medication',
+          description: 'Amlodipine 5mg - Take with breakfast',
+          time: '08:00',
+          frequency: 'daily',
+          active: true,
+          nextReminder: 'Today at 8:00 AM'
+        },
+        {
+          id: '2',
+          title: 'Doctor Appointment',
+          type: 'appointment',
+          description: 'Cardiology consultation - Dr. Smith',
+          time: '14:30',
+          frequency: 'monthly',
+          active: true,
+          nextReminder: 'March 15 at 2:30 PM'
+        }
+      ];
+
+      res.json(mockReminders);
+    } catch (error) {
+      console.error('Reminders fetch error:', error);
+      res.status(500).json({ error: 'Failed to fetch reminders' });
+    }
+  });
+
+  app.post('/api/reminders', async (req, res) => {
+    try {
+      const reminder = req.body;
+      
+      // In a real app, save to database
+      const newReminder = {
+        id: Date.now().toString(),
+        ...reminder,
+        active: true,
+        nextReminder: `Tomorrow at ${reminder.time}`
+      };
+
+      res.json(newReminder);
+    } catch (error) {
+      console.error('Add reminder error:', error);
+      res.status(500).json({ error: 'Failed to add reminder' });
+    }
+  });
+
+  app.patch('/api/reminders/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      
+      // In a real app, update in database
+      res.json({ id, ...updates });
+    } catch (error) {
+      console.error('Update reminder error:', error);
+      res.status(500).json({ error: 'Failed to update reminder' });
+    }
+  });
+
+  app.delete('/api/reminders/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // In a real app, delete from database
+      res.json({ success: true, id });
+    } catch (error) {
+      console.error('Delete reminder error:', error);
+      res.status(500).json({ error: 'Failed to delete reminder' });
     }
   });
 
