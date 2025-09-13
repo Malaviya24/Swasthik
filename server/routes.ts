@@ -213,7 +213,7 @@ Respond helpfully and safely:`;
       });
 
       res.json({ response: response.text || "I apologize, but I couldn't process your request. Please try again." });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Chat error:', error);
       
       // Provide fallback response for API errors
