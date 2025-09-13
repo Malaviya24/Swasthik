@@ -91,52 +91,54 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50" data-testid="page-chat">
+    <div className="flex flex-col min-h-screen bg-gray-50" data-testid="page-chat">
       {/* Chat Container */}
-      <div className="flex-1 max-w-6xl mx-auto w-full bg-white shadow-lg rounded-t-lg overflow-hidden">
+      <div className="flex-1 max-w-7xl mx-auto w-full bg-white shadow-lg rounded-t-lg overflow-hidden m-2 sm:m-4 lg:m-6">
         {/* Chat Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-green-600 text-white p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                <i className="fas fa-robot text-lg"></i>
+        <div className="bg-gradient-to-r from-blue-600 to-green-600 text-white p-3 sm:p-4 lg:p-6">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center space-x-3 min-w-0">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+                <i className="fas fa-robot text-lg sm:text-xl lg:text-2xl"></i>
               </div>
-              <div>
-                <h2 className="font-semibold text-lg">Swasthya Mitra AI</h2>
-                <p className="text-sm text-blue-100">
+              <div className="min-w-0">
+                <h2 className="font-semibold text-base sm:text-lg lg:text-xl truncate">Swasthya Mitra AI</h2>
+                <p className="text-xs sm:text-sm text-blue-100">
                   <span className="inline-block w-2 h-2 bg-green-400 rounded-full mr-2"></span>
                   Online - Ready to help
                 </p>
               </div>
             </div>
             
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 sm:space-x-3 flex-wrap gap-2">
               <Button 
                 onClick={() => setShowSymptomChecker(true)}
                 variant="secondary"
                 size="sm"
-                className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                className="bg-white/20 hover:bg-white/30 text-white border-white/30 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
                 data-testid="button-symptom-checker"
               >
-                <i className="fas fa-stethoscope mr-2"></i>
-                Symptom Checker
+                <i className="fas fa-stethoscope mr-1 sm:mr-2"></i>
+                <span className="hidden sm:inline">Symptom Checker</span>
+                <span className="sm:hidden">Symptoms</span>
               </Button>
               <Button 
                 onClick={clearChat}
                 variant="secondary"
                 size="sm"
-                className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                className="bg-white/20 hover:bg-white/30 text-white border-white/30 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
                 data-testid="button-clear-chat"
               >
-                <i className="fas fa-trash mr-2"></i>
-                Clear
+                <i className="fas fa-trash mr-1 sm:mr-2"></i>
+                <span className="hidden sm:inline">Clear</span>
+                <span className="sm:hidden">Clear</span>
               </Button>
             </div>
           </div>
         </div>
 
         {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col h-[calc(100vh-12rem)]">
+        <div className="flex-1 flex flex-col h-[calc(100vh-8rem)] sm:h-[calc(100vh-10rem)] lg:h-[calc(100vh-12rem)]">
           <ChatInterface
             messages={messages}
             isLoading={isLoading}
