@@ -81,7 +81,7 @@ export async function analyzeSymptoms(symptoms: string[]): Promise<HealthAnalysi
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ symptoms }),
+      body: JSON.stringify({ symptoms: symptoms.join(', ') }),
     });
 
     if (!response.ok) {

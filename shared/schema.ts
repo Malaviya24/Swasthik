@@ -106,7 +106,7 @@ export const healthCenterSchema = z.object({
 });
 
 export const symptomAnalysisSchema = z.object({
-  age: z.string().optional(),
+  age: z.union([z.string(), z.number()]).optional().transform(val => val ? String(val) : undefined),
   gender: z.string().optional(),
   symptoms: z.string(),
   duration: z.string().optional()
