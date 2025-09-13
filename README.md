@@ -109,11 +109,22 @@
 3. **Environment Setup**
    Create a `.env` file in the root directory:
    ```env
+   # Google Gemini AI API Key (Required for AI chat)
    GEMINI_API_KEY=your_gemini_api_key_here
+   
+   # Database Configuration (Optional for demo)
    DATABASE_URL=your_postgresql_connection_string
+   
+   # Server Configuration
    NODE_ENV=development
    PORT=5000
    ```
+
+   **Get your Google Gemini API Key:**
+   1. Visit [Google AI Studio](https://aistudio.google.com/)
+   2. Sign in with your Google account
+   3. Click "Get API Key" and create a new key
+   4. Copy the key to your `.env` file
 
 4. **Database Setup**
    ```bash
@@ -211,6 +222,48 @@ health-chabot/
 - **Emergency Situations**: For medical emergencies, call 108 or visit the nearest hospital
 - **Data Privacy**: User health data is handled with strict privacy measures
 - **AI Limitations**: AI responses should not replace professional medical judgment
+
+## 🔧 Troubleshooting
+
+### Common Errors and Solutions
+
+#### 1. **Build Directory Error**
+```
+Error: Could not find the build directory
+```
+**Solution**: Run `npm run build` before starting the server
+
+#### 2. **Port Already in Use**
+```
+Error: listen EADDRINUSE: address already in use :::5000
+```
+**Solution**: 
+```bash
+# Find and kill the process using port 5000
+netstat -ano | findstr :5000
+taskkill /PID [process_id] /F
+
+# Or use a different port
+set PORT=3000 && npm run dev
+```
+
+#### 3. **Google API Authentication Error**
+```
+ApiError: PERMISSION_DENIED
+```
+**Solution**: 
+1. Get a valid Google Gemini API key from [Google AI Studio](https://aistudio.google.com/)
+2. Add it to your `.env` file
+3. Restart the server
+
+#### 4. **Windows Socket Error**
+```
+Error: listen ENOTSUP: operation not supported on socket
+```
+**Solution**: This is fixed in the current version
+
+### Demo Mode
+If you don't have a Google Gemini API key, the app runs in demo mode with basic functionality.
 
 ## 🔒 Security & Privacy
 

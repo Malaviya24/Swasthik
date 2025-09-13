@@ -42,6 +42,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Message is required' });
       }
 
+      // Check if API key is available
+      if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'your_gemini_api_key_here') {
+        return res.json({ 
+          response: `🙏 Namaste! I'm Swasthik, your AI healthcare assistant. 
+
+I'm currently running in demo mode. To enable full AI chat functionality, please:
+
+1. Get a Google Gemini API key from: https://aistudio.google.com/
+2. Set the GEMINI_API_KEY environment variable
+3. Restart the server
+
+For now, I can help you with:
+• General health information
+• Symptom checking (basic)
+• Medication information
+• Finding health centers
+
+What health concern can I help you with today?` 
+        });
+      }
+
       // Build conversation context
       let conversationContext = `You are Swasthik, an AI healthcare assistant designed for rural and semi-urban communities. 
       
@@ -75,6 +96,22 @@ Respond helpfully and safely:`;
       res.json({ response: response.text || "I apologize, but I couldn't process your request. Please try again." });
     } catch (error) {
       console.error('Chat error:', error);
+      
+      // Provide fallback response for API errors
+      if (error.status === 403) {
+        return res.json({ 
+          response: `🙏 Namaste! I'm Swasthik, your AI healthcare assistant. 
+
+I'm currently running in demo mode due to API configuration. To enable full AI chat functionality, please:
+
+1. Get a Google Gemini API key from: https://aistudio.google.com/
+2. Set the GEMINI_API_KEY environment variable
+3. Restart the server
+
+For now, I can help you with basic health information and guidance. What would you like to know?` 
+        });
+      }
+      
       res.status(500).json({ error: 'Failed to process chat message' });
     }
   });
