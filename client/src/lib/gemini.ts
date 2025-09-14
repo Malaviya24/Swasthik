@@ -6,10 +6,13 @@ export interface ChatMessage {
 }
 
 export interface HealthAnalysis {
-  condition: string;
-  symptoms: string[];
-  urgency: 'low' | 'medium' | 'high' | 'emergency';
+  possibleConditions: string[];
+  severity: 'low' | 'medium' | 'high';
   recommendations: string[];
+  urgency: string;
+  whenToSeekHelp: string[];
+  selfCareSteps: string[];
+  preventiveTips: string[];
   disclaimer: string;
 }
 

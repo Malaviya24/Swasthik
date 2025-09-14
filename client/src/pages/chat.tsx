@@ -74,18 +74,30 @@ export default function Chat() {
   }
 
   const handleSymptomAnalysis = (analysis: HealthAnalysis) => {
-    const analysisMessage = `**Symptom Analysis Results:**
+    const analysisMessage = `**🏥 Comprehensive Health Analysis Report**
 
-**Possible Condition:** ${analysis.condition}
+**📋 Possible Conditions:**
+${analysis.possibleConditions.map(condition => `• ${condition}`).join('\n')}
 
-**Key Symptoms:** ${analysis.symptoms.join(', ')}
+**⚡ Severity Level:** ${analysis.severity.toUpperCase()}
 
-**Urgency Level:** ${analysis.urgency.toUpperCase()}
-
-**Recommendations:**
+**💡 Recommendations:**
 ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
 
-**Important Disclaimer:** ${analysis.disclaimer}`;
+**🚨 When to Seek Immediate Help:**
+${analysis.whenToSeekHelp.map(help => `• ${help}`).join('\n')}
+
+**🏠 Safe Self-Care Steps:**
+${analysis.selfCareSteps.map(step => `• ${step}`).join('\n')}
+
+**🛡️ Prevention Tips:**
+${analysis.preventiveTips.map(tip => `• ${tip}`).join('\n')}
+
+**⏰ Urgency Assessment:**
+${analysis.urgency}
+
+**⚠️ Important Medical Disclaimer:**
+${analysis.disclaimer}`;
 
     sendMessage(analysisMessage);
   };

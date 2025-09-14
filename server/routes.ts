@@ -283,47 +283,113 @@ Please provide a helpful analysis while including these important disclaimers:
 
       const { age, gender, symptoms, duration } = validationResult.data;
 
-      const prompt = `As a healthcare AI assistant, analyze these symptoms: ${symptoms}
+      const prompt = `As a healthcare AI assistant, analyze these symptoms comprehensively: ${symptoms}
       ${age ? `Patient age: ${age}` : ''}
       ${gender ? `Patient gender: ${gender}` : ''}
       ${duration ? `Duration: ${duration}` : ''}
 
-      Please provide a structured analysis with these fields:
-      - possibleConditions: Array of possible general health conditions (avoid specific diagnoses)
-      - severity: One of "low", "medium", "high"
-      - recommendations: Array of general health recommendations
-      - urgency: Description of urgency level and next steps
+      Provide a comprehensive health analysis in JSON format with these exact fields:
+      {
+        "possibleConditions": ["array of 3-5 possible general health conditions - avoid specific medical diagnoses"],
+        "severity": "low/medium/high - be conservative",
+        "recommendations": ["array of 5-8 specific, actionable health recommendations"],
+        "urgency": "detailed description of urgency level and specific next steps",
+        "whenToSeekHelp": ["array of warning signs that require immediate medical attention"],
+        "selfCareSteps": ["array of safe self-care measures"],
+        "preventiveTips": ["array of tips to prevent similar issues"],
+        "disclaimer": "comprehensive medical disclaimer"
+      }
 
-      Remember to:
-      - Avoid specific medical diagnoses
-      - Focus on general health conditions
-      - Always recommend consulting healthcare professionals
-      - Be conservative with severity levels`;
+      Guidelines:
+      - Focus on general health conditions, not specific diagnoses
+      - Be supportive but conservative with severity assessment
+      - Provide practical, actionable advice
+      - Always emphasize consulting healthcare professionals
+      - Include clear warning signs for when to seek immediate help
+      - Suggest safe self-care measures
+      - Add preventive health tips
+      - Use clear, everyday language
+      
+      Return ONLY the JSON object, no other text.`;
 
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: prompt,
-      });
+      let analysis;
+      let usedFallback = false;
+      
+      // Check if AI is available
+      if (!process.env.GEMINI_API_KEY) {
+        console.log('GEMINI_API_KEY not available, using fallback analysis');
+        usedFallback = true;
+      } else {
+        try {
+          const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
+          });
 
-      // Mock structured response for demo that matches frontend expectations
-      const analysis = {
-        possibleConditions: [
-          "Common cold or flu",
-          "Seasonal allergy", 
-          "General fatigue"
-        ],
-        severity: symptoms.toLowerCase().includes('severe') || symptoms.toLowerCase().includes('emergency') ? 'high' : 
-                 symptoms.toLowerCase().includes('pain') || symptoms.toLowerCase().includes('fever') ? 'medium' : 'low',
-        recommendations: [
-          "Get adequate rest and hydration",
-          "Monitor symptoms for changes", 
-          "Consult a healthcare professional if symptoms persist",
-          "Take over-the-counter medications as appropriate"
-        ],
-        urgency: "Monitor symptoms and consult a healthcare professional if they worsen or persist beyond a few days."
-      };
+          // Try to parse the AI response as JSON
+          const aiText = response.text || '';
+          const jsonMatch = aiText.match(/\{[\s\S]*\}/);
+          
+          if (jsonMatch) {
+            analysis = JSON.parse(jsonMatch[0]);
+          } else {
+            throw new Error('No JSON found in AI response');
+          }
+        } catch (aiError) {
+          console.log('AI analysis failed, using fallback:', aiError);
+          usedFallback = true;
+        }
+      }
+      
+      // Use fallback if AI is unavailable or failed
+      if (usedFallback || !analysis) {
+        analysis = {
+          possibleConditions: [
+            "Common health condition that may require attention",
+            "General symptoms that could indicate various conditions", 
+            "Minor health issue that should be monitored"
+          ],
+          severity: symptoms.toLowerCase().includes('severe') || symptoms.toLowerCase().includes('emergency') ? 'high' : 
+                   symptoms.toLowerCase().includes('pain') || symptoms.toLowerCase().includes('fever') ? 'medium' : 'low',
+          recommendations: [
+            "Get adequate rest and stay hydrated",
+            "Monitor your symptoms carefully for any changes", 
+            "Maintain a healthy diet and gentle exercise if possible",
+            "Keep a symptom diary to track changes",
+            "Consult a healthcare professional if symptoms persist",
+            "Take over-the-counter medications as appropriate and safe",
+            "Ensure you're getting enough sleep",
+            "Consider stress management techniques"
+          ],
+          urgency: "Monitor your symptoms closely and consult a healthcare professional if they worsen, persist beyond a few days, or if you develop concerning new symptoms.",
+          whenToSeekHelp: [
+            "If symptoms worsen significantly or rapidly",
+            "If you develop high fever (over 39°C/102°F)",
+            "If you experience difficulty breathing or chest pain",
+            "If symptoms persist for more than a week without improvement",
+            "If you feel concerned about your condition"
+          ],
+          selfCareSteps: [
+            "Rest and avoid strenuous activities",
+            "Stay well-hydrated with water and clear fluids",
+            "Eat nutritious foods when you have appetite",
+            "Use appropriate pain relief if needed",
+            "Maintain good hygiene practices"
+          ],
+          preventiveTips: [
+            "Maintain a balanced diet rich in vitamins and minerals",
+            "Get regular exercise appropriate for your fitness level",
+            "Ensure adequate sleep (7-9 hours per night)",
+            "Practice good hygiene, especially hand washing",
+            "Manage stress through relaxation techniques",
+            "Stay up to date with preventive healthcare checkups"
+          ],
+          disclaimer: "This analysis is for informational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. Always consult with a qualified healthcare provider about your specific health concerns and before making any health-related decisions."
+        };
+      }
 
-      res.json(analysis);
+      res.json({ analysis, usedFallback });
+      
     } catch (error) {
       console.error('Symptom analysis error:', error);
       res.status(500).json({ error: 'Failed to analyze symptoms' });
