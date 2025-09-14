@@ -32,39 +32,14 @@ export default function RemindersPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Sample reminders for demo
-  const sampleReminders: Reminder[] = [
-    {
-      id: '1',
-      title: 'Take Blood Pressure Medication',
-      type: 'medication',
-      description: 'Amlodipine 5mg - Take with breakfast',
-      time: '08:00',
-      frequency: 'daily',
-      active: true,
-      nextReminder: 'Today at 8:00 AM'
+  // Fetch reminders from API
+  const { data: reminders = [], isLoading } = useQuery({
+    queryKey: ['/api/reminders'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/reminders');
+      return await response.json();
     },
-    {
-      id: '2',
-      title: 'Doctor Appointment',
-      type: 'appointment',
-      description: 'Cardiology consultation - Dr. Smith',
-      time: '14:30',
-      frequency: 'monthly',
-      active: true,
-      nextReminder: 'March 15 at 2:30 PM'
-    },
-    {
-      id: '3',
-      title: 'Morning Exercise',
-      type: 'exercise',
-      description: '30 minutes walking in the park',
-      time: '06:30',
-      frequency: 'daily',
-      active: true,
-      nextReminder: 'Tomorrow at 6:30 AM'
-    }
-  ];
+  });
 
   const addReminder = useMutation({
     mutationFn: async (reminder: any) => {
@@ -133,11 +108,23 @@ export default function RemindersPage() {
       return;
     }
 
+    // Create scheduledAt from the time input
+    const today = new Date();
+    const [hours, minutes] = newReminder.time.split(':').map(Number);
+    const scheduledAt = new Date(today);
+    scheduledAt.setHours(hours, minutes, 0, 0);
+    
+    // If the time is in the past, schedule for tomorrow
+    if (scheduledAt <= new Date()) {
+      scheduledAt.setDate(scheduledAt.getDate() + 1);
+    }
+
     addReminder.mutate({
-      ...newReminder,
-      id: Date.now().toString(),
-      active: true,
-      nextReminder: calculateNextReminder(newReminder.time, newReminder.frequency),
+      title: newReminder.title,
+      description: newReminder.description || '',
+      reminderType: newReminder.type,
+      scheduledAt: scheduledAt.toISOString(),
+      isActive: true,
     });
   };
 
@@ -311,7 +298,7 @@ export default function RemindersPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-gray-600">Active Reminders</span>
                     <Badge className="bg-green-100 text-green-800">
-                      {sampleReminders.filter(r => r.active).length}
+                      {reminders.filter((r: Reminder) => r.active).length}
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
@@ -340,9 +327,14 @@ export default function RemindersPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {sampleReminders.length > 0 ? (
+                {isLoading ? (
+                  <div className="text-center py-8">
+                    <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-gray-500">Loading reminders...</p>
+                  </div>
+                ) : reminders.length > 0 ? (
                   <div className="space-y-4">
-                    {sampleReminders.map((reminder) => (
+                    {reminders.map((reminder: Reminder) => (
                       <div
                         key={reminder.id}
                         className={`border rounded-lg p-4 transition-all ${
