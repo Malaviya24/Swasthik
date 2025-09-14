@@ -1,7 +1,7 @@
 import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { GoogleGenAI } from "@google/genai";
+import { createRequire } from "module";
 import multer from "multer";
 import { 
   insertMessageSchema, 
@@ -14,6 +14,24 @@ import {
   type HealthCenter
 } from "@shared/schema";
 import { z } from "zod";
+
+const require = createRequire(import.meta.url);
+let ai: any | null = null;
+
+async function getAI() {
+  if (!process.env.GEMINI_API_KEY) throw new Error('GEMINI_API_KEY missing');
+  if (!ai) {
+    try {
+      const { GoogleGenAI } = require('@google/genai'); // forces "require" export
+      ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    } catch {
+      const m = await import('@google/genai'); // ESM fallback
+      const GoogleGenAI = (m as any).GoogleGenAI || (m as any).GoogleGenerativeAI;
+      ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    }
+  }
+  return ai;
+}
 
 const upload = multer({ 
   storage: multer.memoryStorage(),
@@ -29,7 +47,6 @@ const upload = multer({
     }
   }
 });
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -207,7 +224,8 @@ User's current message: ${message}
 
 Respond helpfully and safely:`;
 
-      const response = await ai.models.generateContent({
+      const aiClient = await getAI();
+      const response = await aiClient.models.generateContent({
         model: "gemini-2.5-flash",
         contents: conversationContext,
       });
@@ -261,7 +279,8 @@ Please provide a helpful analysis while including these important disclaimers:
 - Be supportive and non-alarming in your response`,
       ];
 
-      const response = await ai.models.generateContent({
+      const aiClient = await getAI();
+      const response = await aiClient.models.generateContent({
         model: "gemini-2.5-pro",
         contents: contents,
       });
@@ -321,7 +340,8 @@ Please provide a helpful analysis while including these important disclaimers:
         usedFallback = true;
       } else {
         try {
-          const response = await ai.models.generateContent({
+          const aiClient = await getAI();
+          const response = await aiClient.models.generateContent({
             model: "gemini-2.5-flash",
             contents: prompt,
           });
@@ -520,7 +540,8 @@ Please provide a helpful analysis while including these important disclaimers:
 
       Always include disclaimers about consulting healthcare professionals.`;
 
-      const response = await ai.models.generateContent({
+      const aiClient = await getAI();
+      const response = await aiClient.models.generateContent({
         model: "gemini-2.5-flash",
         contents: prompt,
       });
