@@ -4,6 +4,7 @@ import { ChatMessage } from '@/lib/gemini';
 import { TypingIndicator } from '@/components/ui/typing-indicator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/use-auth';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ChatInterfaceProps {
   messages: ChatMessage[];
@@ -14,6 +15,7 @@ interface ChatInterfaceProps {
 export function ChatInterface({ messages, isLoading, onClearChat }: ChatInterfaceProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
+  const { translate } = useLanguage();
   const [isHealthTipVisible, setIsHealthTipVisible] = useState(true);
 
   useEffect(() => {
@@ -84,16 +86,16 @@ export function ChatInterface({ messages, isLoading, onClearChat }: ChatInterfac
             <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-green-100 rounded-3xl flex items-center justify-center mb-6">
               <i className="fas fa-comments text-3xl text-blue-600"></i>
             </div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">Welcome to Swasthik</h3>
-            <p className="text-gray-600 mb-6 max-w-md">Your personal AI health assistant. Ask me anything about your health concerns, symptoms, or medical questions.</p>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">{translate('chat.title')}</h3>
+            <p className="text-gray-600 mb-6 max-w-md">{translate('chat.subtitle')}</p>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="bg-blue-50 p-3 rounded-lg">
                 <i className="fas fa-stethoscope text-blue-600 mb-2"></i>
-                <p className="text-gray-700">Symptom Analysis</p>
+                <p className="text-gray-700">{translate('nav.symptom_checker')}</p>
               </div>
               <div className="bg-green-50 p-3 rounded-lg">
                 <i className="fas fa-pills text-green-600 mb-2"></i>
-                <p className="text-gray-700">Medicine Info</p>
+                <p className="text-gray-700">{translate('nav.medications')}</p>
               </div>
               <div className="bg-purple-50 p-3 rounded-lg">
                 <i className="fas fa-camera text-purple-600 mb-2"></i>

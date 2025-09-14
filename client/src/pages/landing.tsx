@@ -1,23 +1,25 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'wouter';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function Landing() {
+  const { translate } = useLanguage();
   const features = [
     {
       icon: 'fas fa-robot',
-      title: 'AI Health Assistant',
-      description: 'Get instant health guidance powered by advanced AI technology trained for Indian healthcare needs'
+      title: translate('features.ai_powered'),
+      description: translate('features.ai_powered_desc')
     },
     {
       icon: 'fas fa-stethoscope',
-      title: 'Symptom Checker',
-      description: 'Analyze your symptoms with our intelligent symptom checker and get personalized health recommendations'
+      title: translate('features.instant_diagnosis'),
+      description: translate('features.instant_diagnosis_desc')
     },
     {
       icon: 'fas fa-pills',
-      title: 'Medicine Information',
-      description: 'Search and get detailed information about medications, dosages, and potential side effects'
+      title: translate('features.medication_info'),
+      description: translate('features.medication_info_desc')
     },
     {
       icon: 'fas fa-camera',
@@ -58,10 +60,10 @@ export default function Landing() {
               </div>
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6 leading-tight" data-testid="heading-hero">
-              Swasthik
+              {translate('app.title')}
             </h1>
             <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl mb-3 sm:mb-4 text-blue-100">
-              स्वास्थिक - Your AI Healthcare Assistant
+              {translate('app.subtitle')}
             </p>
             <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-6 sm:mb-8 max-w-xs sm:max-w-2xl lg:max-w-4xl mx-auto text-blue-50 leading-relaxed px-4">
               Get instant health guidance, symptom analysis, and medical information in your preferred language. 
@@ -75,7 +77,7 @@ export default function Landing() {
                   data-testid="button-start-chat"
                 >
                   <i className="fas fa-comments mr-2"></i>
-                  Start Health Chat
+                  {translate('landing.get_started')}
                 </Button>
               </Link>
               <Button 
@@ -85,7 +87,7 @@ export default function Landing() {
                 onClick={() => window.open('tel:108')}
               >
                 <i className="fas fa-phone-alt mr-2"></i>
-                Emergency: 108
+                {translate('nav.emergency')}
               </Button>
             </div>
           </div>

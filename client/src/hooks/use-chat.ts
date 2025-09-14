@@ -1,24 +1,21 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { ChatMessage, sendChatMessage } from '@/lib/gemini';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export function useChat() {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      role: 'assistant',
-      content: `🙏 Namaste! I'm your Swasthik (Health Friend). I'm here to help you with:
-
-• Health questions & symptoms
-• Medicine information  
-• First aid guidance
-• Finding nearby clinics
-• Health reminders
-
-**Important:** I provide general health information only. Always consult a qualified healthcare professional for medical advice.`,
-    },
-  ]);
+  const { currentLanguage, translate } = useLanguage();
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  // Initialize with welcome message in current language
+  useEffect(() => {
+    setMessages([{
+      role: 'assistant',
+      content: translate('chat.welcome_message'),
+    }]);
+  }, [currentLanguage, translate]);
 
   const sendMessage = useCallback(async (content: string, messageType: 'text' | 'image' | 'voice' = 'text') => {
     const userMessage: ChatMessage = {
@@ -31,7 +28,7 @@ export function useChat() {
     setIsLoading(true);
 
     try {
-      const response = await sendChatMessage(content, messages);
+      const response = await sendChatMessage(content, messages, currentLanguage);
       
       const assistantMessage: ChatMessage = {
         role: 'assistant',
@@ -42,8 +39,8 @@ export function useChat() {
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
-        title: "Error",
-        description: "Failed to send message. Please try again.",
+        title: translate('common.error'),
+        description: translate('chat.error_message'),
         variant: "destructive",
       });
     } finally {
@@ -52,21 +49,11 @@ export function useChat() {
   }, [messages, toast]);
 
   const clearChat = useCallback(() => {
-    setMessages([
-      {
-        role: 'assistant',
-        content: `🙏 Namaste! I'm your Swasthik (Health Friend). I'm here to help you with:
-
-• Health questions & symptoms
-• Medicine information  
-• First aid guidance
-• Finding nearby clinics
-• Health reminders
-
-**Important:** I provide general health information only. Always consult a qualified healthcare professional for medical advice.`,
-      },
-    ]);
-  }, []);
+    setMessages([{
+      role: 'assistant',
+      content: translate('chat.welcome_message'),
+    }]);
+  }, [translate]);
 
   return {
     messages,
