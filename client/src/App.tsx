@@ -12,6 +12,7 @@ import MedicationsPage from "@/pages/medications-page";
 import HealthCentersPage from "@/pages/health-centers-page";
 import RemindersPage from "@/pages/reminders-page";
 import HealthNewsPage from "@/pages/health-news-page";
+import { TestPage } from "@/pages/test-page";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -26,6 +27,7 @@ function Router() {
         <Route path="/health-centers" component={HealthCentersPage}/>
         <Route path="/reminders" component={RemindersPage}/>
         <Route path="/health-news" component={HealthNewsPage}/>
+        <Route path="/test" component={TestPage}/>
         <Route component={NotFound} />
       </Switch>
     </div>
