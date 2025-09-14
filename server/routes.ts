@@ -648,19 +648,8 @@ Please provide a helpful analysis while including these important disclaimers:
       
       const reminders = await storage.getUserReminders(mockUserId);
       
-      // Convert storage reminders to frontend format
-      const formattedReminders = reminders.map(reminder => ({
-        id: reminder.id,
-        title: reminder.title,
-        type: reminder.reminderType,
-        description: reminder.description || '',
-        time: reminder.scheduledAt.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }),
-        frequency: 'daily', // Default since not in schema
-        active: reminder.isActive ?? true,
-        nextReminder: `${reminder.scheduledAt.toLocaleDateString()} at ${reminder.scheduledAt.toLocaleTimeString()}`
-      }));
-
-      res.json(formattedReminders);
+      // Return raw reminder objects that match the frontend Reminder type
+      res.json(reminders);
     } catch (error) {
       console.error('Reminders fetch error:', error);
       res.status(500).json({ error: 'Failed to fetch reminders' });
@@ -681,19 +670,8 @@ Please provide a helpful analysis while including these important disclaimers:
 
       const newReminder = await storage.createReminder(validationResult.data);
       
-      // Convert to frontend format
-      const formattedReminder = {
-        id: newReminder.id,
-        title: newReminder.title,
-        type: newReminder.reminderType,
-        description: newReminder.description || '',
-        time: newReminder.scheduledAt.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }),
-        frequency: 'daily',
-        active: newReminder.isActive ?? true,
-        nextReminder: `${newReminder.scheduledAt.toLocaleDateString()} at ${newReminder.scheduledAt.toLocaleTimeString()}`
-      };
-
-      res.json(formattedReminder);
+      // Return raw reminder object that matches the frontend Reminder type
+      res.json(newReminder);
     } catch (error) {
       console.error('Add reminder error:', error);
       res.status(500).json({ error: 'Failed to add reminder' });
@@ -703,15 +681,17 @@ Please provide a helpful analysis while including these important disclaimers:
   app.patch('/api/reminders/:id', async (req, res) => {
     try {
       const { id } = req.params;
-      const { active } = req.body;
       
-      const updatedReminder = await storage.updateReminder(id, { isActive: active });
+      // Accept partial reminder data for updates
+      const updateData = req.body;
+      
+      const updatedReminder = await storage.updateReminder(id, updateData);
       
       if (!updatedReminder) {
         return res.status(404).json({ error: 'Reminder not found' });
       }
 
-      res.json({ id, active });
+      res.json(updatedReminder);
     } catch (error) {
       console.error('Update reminder error:', error);
       res.status(500).json({ error: 'Failed to update reminder' });

@@ -338,11 +338,15 @@ export default function RemindersPage() {
     }
   };
 
-  // Helper functions
+  // Helper functions - Using timezone-safe date comparison
+  const sameDay = (a: Date, b: Date) => {
+    return format(a, 'yyyy-MM-dd') === format(b, 'yyyy-MM-dd');
+  };
+
   const getRemindersByDate = (date: Date) => {
     return reminders.filter((reminder) => {
       const reminderDate = new Date(reminder.scheduledAt);
-      return isValid(reminderDate) && isSameDay(reminderDate, date);
+      return isValid(reminderDate) && sameDay(reminderDate, date);
     });
   };
 
@@ -377,7 +381,7 @@ export default function RemindersPage() {
     return isValid(reminderDate) && isAfter(reminderDate, new Date()) && r.isActive;
   });
   
-  // Get filtered reminders based on current filter
+  // Get filtered reminders based on current filter - show selected date reminders by default
   const getFilteredReminders = () => {
     switch (reminderFilter) {
       case 'active':
@@ -386,8 +390,9 @@ export default function RemindersPage() {
         return todayReminders;
       case 'upcoming':
         return upcomingReminders;
+      case 'all':
       default:
-        return reminders;
+        return selectedDateReminders; // Show reminders for selected date by default
     }
   };
   
@@ -530,7 +535,7 @@ export default function RemindersPage() {
   const dateHasReminders = (date: Date) => {
     return reminders.some(r => {
       const reminderDate = new Date(r.scheduledAt);
-      return isValid(reminderDate) && isSameDay(reminderDate, date);
+      return isValid(reminderDate) && sameDay(reminderDate, date);
     });
   };
 
@@ -834,11 +839,23 @@ export default function RemindersPage() {
                 <Calendar
                   mode="single"
                   selected={selectedCalendarDate}
-                  onSelect={(date) => date && setSelectedCalendarDate(date)}
+                  onSelect={(date) => {
+                    if (date) {
+                      setSelectedCalendarDate(date);
+                      // Reset to 'all' filter when selecting a date to show date-specific reminders
+                      setReminderFilter('all');
+                    }
+                  }}
                   month={currentMonth}
                   onMonthChange={setCurrentMonth}
                   data-testid="calendar-main"
                   className="w-full"
+                  modifiers={{
+                    hasReminders: reminders.map(r => new Date(r.scheduledAt))
+                  }}
+                  modifiersClassNames={{
+                    hasReminders: 'bg-blue-100 text-blue-900 font-medium relative'
+                  }}
                   classNames={{
                     months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 w-full",
                     month: "space-y-4 w-full",
