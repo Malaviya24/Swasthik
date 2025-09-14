@@ -170,15 +170,23 @@ export default function RemindersPage() {
     }
   };
 
-  // Calendar helper functions
+  // Calendar helper functions with validation
   const getDateKey = (date: Date) => {
+    if (!date || isNaN(date.getTime())) {
+      return '';
+    }
     return format(date, 'yyyy-MM-dd');
   };
 
   const getRemindersByDate = (date: Date) => {
     const dateKey = getDateKey(date);
+    if (!dateKey) return [];
+    
     return reminders.filter((reminder: UIReminder) => {
       const reminderDate = new Date(reminder.scheduledAt);
+      if (!reminderDate || isNaN(reminderDate.getTime())) {
+        return false;
+      }
       return getDateKey(reminderDate) === dateKey;
     });
   };
@@ -187,7 +195,12 @@ export default function RemindersPage() {
     const daysWithReminders = new Set<string>();
     reminders.forEach((reminder: UIReminder) => {
       const reminderDate = new Date(reminder.scheduledAt);
-      daysWithReminders.add(getDateKey(reminderDate));
+      if (reminderDate && !isNaN(reminderDate.getTime())) {
+        const dateKey = getDateKey(reminderDate);
+        if (dateKey) {
+          daysWithReminders.add(dateKey);
+        }
+      }
     });
     return daysWithReminders;
   };
@@ -196,80 +209,81 @@ export default function RemindersPage() {
 
   return (
     <>
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-            <i className="fas fa-calendar-check text-2xl text-white"></i>
+        <div className="text-center mb-12">
+          <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+            <i className="fas fa-calendar-check text-3xl text-white"></i>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Health Reminders</h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Set and manage reminders for medications, appointments, exercises, and health checkups
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Health Reminders</h1>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            Stay on top of your health with smart reminders for medications, appointments, and wellness activities
           </p>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
           {/* Add Reminder Form */}
           <div className="lg:col-span-1">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <i className="fas fa-plus text-green-600"></i>
-                  <span>Add New Reminder</span>
+            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+              <CardHeader className="bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-t-lg">
+                <CardTitle className="flex items-center space-x-3 text-xl">
+                  <i className="fas fa-plus-circle text-2xl"></i>
+                  <span>New Reminder</span>
                 </CardTitle>
-                <CardDescription>
-                  Create a new health reminder
+                <CardDescription className="text-blue-100">
+                  Create a personalized health reminder
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
+              <CardContent className="p-6">
+                <div className="space-y-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Title *
+                    <label className="block text-sm font-semibold text-gray-800 mb-3">
+                      Reminder Title *
                     </label>
                     <Input
-                      placeholder="e.g., Take vitamins"
+                      placeholder="e.g., Take morning vitamins"
                       value={newReminder.title}
                       onChange={(e) => setNewReminder({ ...newReminder, title: e.target.value })}
                       data-testid="input-reminder-title"
+                      className="h-12 border-2 border-gray-200 focus:border-blue-500 transition-colors"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Type
+                    <label className="block text-sm font-semibold text-gray-800 mb-3">
+                      Category
                     </label>
                     <select
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 transition-colors bg-white h-12"
                       value={newReminder.reminderType}
                       onChange={(e) => setNewReminder({ ...newReminder, reminderType: e.target.value as any })}
                       data-testid="select-reminder-type"
                     >
-                      <option value="medication">Medication</option>
-                      <option value="appointment">Appointment</option>
-                      <option value="checkup">Health Checkup</option>
-                      <option value="exercise">Exercise</option>
-                      <option value="other">Other</option>
+                      <option value="medication">💊 Medication</option>
+                      <option value="appointment">📅 Appointment</option>
+                      <option value="checkup">🩺 Health Checkup</option>
+                      <option value="exercise">🏃 Exercise</option>
+                      <option value="other">📋 Other</option>
                     </select>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Date *
+                    <label className="block text-sm font-semibold text-gray-800 mb-3">
+                      Schedule Date *
                     </label>
                     <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
                           className={cn(
-                            "w-full justify-start text-left font-normal",
+                            "w-full justify-start text-left font-normal h-12 border-2 border-gray-200 hover:border-blue-300",
                             !newReminder.date && "text-muted-foreground"
                           )}
                           data-testid="button-reminder-date"
                         >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {newReminder.date ? format(newReminder.date, "PPP") : <span>Pick a date</span>}
+                          <CalendarIcon className="mr-3 h-5 w-5 text-blue-600" />
+                          {newReminder.date ? format(newReminder.date, "EEEE, MMMM d, yyyy") : <span>Select date</span>}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
@@ -291,7 +305,7 @@ export default function RemindersPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-gray-800 mb-3">
                       Time *
                     </label>
                     <Input
@@ -299,54 +313,56 @@ export default function RemindersPage() {
                       value={newReminder.time}
                       onChange={(e) => setNewReminder({ ...newReminder, time: e.target.value })}
                       data-testid="input-reminder-time"
+                      className="h-12 border-2 border-gray-200 focus:border-blue-500 transition-colors"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-gray-800 mb-3">
                       Frequency
                     </label>
                     <select
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 transition-colors bg-white h-12"
                       value={newReminder.frequency}
                       onChange={(e) => setNewReminder({ ...newReminder, frequency: e.target.value as any })}
                       data-testid="select-reminder-frequency"
                     >
-                      <option value="daily">Daily</option>
-                      <option value="weekly">Weekly</option>
-                      <option value="monthly">Monthly</option>
-                      <option value="custom">Custom</option>
+                      <option value="daily">🔄 Daily</option>
+                      <option value="weekly">📅 Weekly</option>
+                      <option value="monthly">🗓️ Monthly</option>
+                      <option value="custom">⚙️ Custom</option>
                     </select>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Description (optional)
+                    <label className="block text-sm font-semibold text-gray-800 mb-3">
+                      Notes (optional)
                     </label>
                     <Textarea
-                      placeholder="Additional notes..."
+                      placeholder="Add any additional details or instructions..."
                       value={newReminder.description}
                       onChange={(e) => setNewReminder({ ...newReminder, description: e.target.value })}
                       rows={3}
                       data-testid="textarea-reminder-description"
+                      className="border-2 border-gray-200 focus:border-blue-500 transition-colors resize-none"
                     />
                   </div>
 
                   <Button
                     onClick={handleAddReminder}
                     disabled={addReminder.isPending}
-                    className="w-full bg-green-600 hover:bg-green-700"
+                    className="w-full h-12 bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white font-semibold shadow-lg transition-all duration-200 transform hover:scale-105"
                     data-testid="button-add-reminder"
                   >
                     {addReminder.isPending ? (
-                      <div className="flex items-center space-x-2">
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        <span>Adding...</span>
+                      <div className="flex items-center space-x-3">
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Creating Reminder...</span>
                       </div>
                     ) : (
-                      <div className="flex items-center space-x-2">
-                        <i className="fas fa-plus"></i>
-                        <span>Add Reminder</span>
+                      <div className="flex items-center space-x-3">
+                        <i className="fas fa-plus-circle text-lg"></i>
+                        <span>Create Reminder</span>
                       </div>
                     )}
                   </Button>
@@ -355,28 +371,47 @@ export default function RemindersPage() {
             </Card>
 
             {/* Quick Stats */}
-            <Card className="mt-6">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <i className="fas fa-chart-pie text-blue-600"></i>
-                  <span>Quick Stats</span>
+            <Card className="mt-8 shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+              <CardHeader className="bg-gradient-to-r from-emerald-600 to-blue-600 text-white rounded-t-lg">
+                <CardTitle className="flex items-center space-x-3 text-lg">
+                  <i className="fas fa-chart-line text-xl"></i>
+                  <span>Health Overview</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Active Reminders</span>
-                    <Badge className="bg-green-100 text-green-800">
+              <CardContent className="p-6">
+                <div className="space-y-5">
+                  <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-lg border border-emerald-200">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center">
+                        <i className="fas fa-check text-white text-sm"></i>
+                      </div>
+                      <span className="font-medium text-emerald-800">Active Reminders</span>
+                    </div>
+                    <Badge className="bg-emerald-600 text-white px-3 py-1 text-sm font-semibold">
                       {reminders.filter((r: UIReminder) => r.isActive).length}
                     </Badge>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Due Today</span>
-                    <Badge className="bg-orange-100 text-orange-800">2</Badge>
+                  <div className="flex items-center justify-between p-3 bg-amber-50 rounded-lg border border-amber-200">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-amber-500 rounded-full flex items-center justify-center">
+                        <i className="fas fa-clock text-white text-sm"></i>
+                      </div>
+                      <span className="font-medium text-amber-800">Due Today</span>
+                    </div>
+                    <Badge className="bg-amber-600 text-white px-3 py-1 text-sm font-semibold">
+                      {getRemindersByDate(new Date()).length}
+                    </Badge>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">This Week</span>
-                    <Badge className="bg-blue-100 text-blue-800">7</Badge>
+                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                        <i className="fas fa-calendar-week text-white text-sm"></i>
+                      </div>
+                      <span className="font-medium text-blue-800">Total Reminders</span>
+                    </div>
+                    <Badge className="bg-blue-600 text-white px-3 py-1 text-sm font-semibold">
+                      {reminders.length}
+                    </Badge>
                   </div>
                 </div>
               </CardContent>
@@ -385,40 +420,42 @@ export default function RemindersPage() {
 
           {/* Calendar View */}
           <div className="xl:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <CalendarIcon className="h-5 w-5 text-blue-600" />
+            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+              <CardHeader className="bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-t-lg">
+                <CardTitle className="flex items-center space-x-3 text-xl">
+                  <CalendarIcon className="h-6 w-6" />
                   <span>Calendar View</span>
                 </CardTitle>
-                <CardDescription>
-                  Select a date to view reminders for that day
+                <CardDescription className="text-purple-100">
+                  Select a date to view and manage your reminders
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-6">
                 <Calendar
                   mode="single"
                   selected={selectedCalendarDate}
                   onSelect={(date) => date && setSelectedCalendarDate(date)}
-                  className="rounded-md border mx-auto"
+                  className="rounded-xl border-2 border-gray-200 mx-auto shadow-sm"
                   modifiers={{
                     hasReminders: Array.from(getDaysWithReminders()).map(dateStr => new Date(dateStr))
                   }}
                   modifiersStyles={{
                     hasReminders: {
-                      backgroundColor: '#3b82f6',
+                      backgroundColor: '#6366f1',
                       color: 'white',
-                      fontWeight: 'bold'
+                      fontWeight: 'bold',
+                      borderRadius: '8px'
                     }
                   }}
                   data-testid="calendar-view"
                 />
-                <div className="mt-4 text-center">
-                  <p className="text-sm text-gray-600">
-                    Selected: <span className="font-medium">{format(selectedCalendarDate, "PPP")}</span>
+                <div className="mt-6 text-center bg-gradient-to-r from-purple-50 to-blue-50 p-4 rounded-lg">
+                  <p className="text-lg font-semibold text-gray-800">
+                    Selected: <span className="text-purple-600">{format(selectedCalendarDate, "EEEE, MMMM d, yyyy")}</span>
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Blue dates have reminders
+                  <p className="text-sm text-gray-600 mt-2 flex items-center justify-center space-x-2">
+                    <i className="fas fa-info-circle text-purple-500"></i>
+                    <span>Purple dates have scheduled reminders</span>
                   </p>
                 </div>
               </CardContent>
@@ -427,24 +464,24 @@ export default function RemindersPage() {
 
           {/* Day Detail - Reminders for Selected Date */}
           <div className="xl:col-span-1">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <i className="fas fa-list text-blue-600"></i>
-                  <span>Reminders for {format(selectedCalendarDate, "MMM d")}</span>
+            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+              <CardHeader className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-t-lg">
+                <CardTitle className="flex items-center space-x-3 text-lg">
+                  <i className="fas fa-list-check text-xl"></i>
+                  <span>{format(selectedCalendarDate, "MMM d")}</span>
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-indigo-100">
                   {selectedDateReminders.length} reminder{selectedDateReminders.length !== 1 ? 's' : ''} scheduled
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-6">
                 {selectedDateReminders.length > 0 ? (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {selectedDateReminders.map((reminder: UIReminder) => (
                       <div
                         key={reminder.id}
-                        className={`border rounded-lg p-3 transition-all ${
-                          reminder.isActive ? 'border-blue-200 bg-blue-50' : 'border-gray-200 bg-gray-50 opacity-60'
+                        className={`border-2 rounded-xl p-4 transition-all shadow-sm ${
+                          reminder.isActive ? 'border-indigo-200 bg-gradient-to-r from-indigo-50 to-purple-50' : 'border-gray-200 bg-gray-50 opacity-60'
                         }`}
                         data-testid={`selected-date-reminder-${reminder.id}`}
                       >
@@ -498,10 +535,12 @@ export default function RemindersPage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-6">
-                    <i className="fas fa-calendar-day text-3xl text-gray-400 mb-3"></i>
-                    <p className="text-gray-500 text-sm mb-1">No reminders for this date</p>
-                    <p className="text-xs text-gray-400">Select a date with reminders (blue dates) or add a new one</p>
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <i className="fas fa-calendar-day text-2xl text-gray-400"></i>
+                    </div>
+                    <p className="text-gray-600 font-medium mb-2">No reminders scheduled</p>
+                    <p className="text-sm text-gray-500 leading-relaxed">Select a purple date on the calendar<br />or create a new reminder</p>
                   </div>
                 )}
               </CardContent>
