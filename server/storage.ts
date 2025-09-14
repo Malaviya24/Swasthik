@@ -168,8 +168,8 @@ export class MemStorage implements IStorage {
     const reminder: Reminder = {
       ...insertReminder,
       description: insertReminder.description ?? null,
-      isCompleted: insertReminder.isCompleted ?? null,
-      isActive: insertReminder.isActive ?? null,
+      isCompleted: insertReminder.isCompleted ?? false,
+      isActive: insertReminder.isActive ?? true,
       id,
       createdAt: new Date()
     };

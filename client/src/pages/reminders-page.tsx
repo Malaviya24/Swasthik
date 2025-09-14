@@ -5,30 +5,33 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { type Reminder } from '@shared/schema';
 
-interface Reminder {
-  id: string;
-  title: string;
-  type: 'medication' | 'appointment' | 'checkup' | 'exercise' | 'other';
-  description: string;
-  time: string;
-  frequency: 'daily' | 'weekly' | 'monthly' | 'custom';
-  active: boolean;
-  nextReminder: string;
+// Extended interface for UI-specific fields
+interface UIReminder extends Reminder {
+  frequency?: 'daily' | 'weekly' | 'monthly' | 'custom';
 }
 
 export default function RemindersPage() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newReminder, setNewReminder] = useState({
     title: '',
-    type: 'medication' as const,
+    reminderType: 'medication' as const,
     description: '',
+    date: new Date(),
     time: '',
     frequency: 'daily' as const,
   });
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date>(new Date());
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -54,8 +57,9 @@ export default function RemindersPage() {
       setShowAddForm(false);
       setNewReminder({
         title: '',
-        type: 'medication',
+        reminderType: 'medication',
         description: '',
+        date: new Date(),
         time: '',
         frequency: 'daily',
       });
@@ -71,8 +75,8 @@ export default function RemindersPage() {
   });
 
   const toggleReminder = useMutation({
-    mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
-      const response = await apiRequest('PATCH', `/api/reminders/${id}`, { active });
+    mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
+      const response = await apiRequest('PATCH', `/api/reminders/${id}`, { isActive });
       return await response.json();
     },
     onSuccess: () => {
@@ -99,30 +103,34 @@ export default function RemindersPage() {
   });
 
   const handleAddReminder = () => {
-    if (!newReminder.title.trim() || !newReminder.time) {
+    if (!newReminder.title.trim() || !newReminder.time || !newReminder.date) {
       toast({
         title: "Missing Information",
-        description: "Please fill in the title and time fields.",
+        description: "Please fill in the title, date, and time fields.",
         variant: "destructive",
       });
       return;
     }
 
-    // Create scheduledAt from the time input
-    const today = new Date();
+    // Create scheduledAt by combining the selected date and time
     const [hours, minutes] = newReminder.time.split(':').map(Number);
-    const scheduledAt = new Date(today);
+    const scheduledAt = new Date(newReminder.date);
     scheduledAt.setHours(hours, minutes, 0, 0);
-    
-    // If the time is in the past, schedule for tomorrow
+
+    // Check if the datetime is in the past
     if (scheduledAt <= new Date()) {
-      scheduledAt.setDate(scheduledAt.getDate() + 1);
+      toast({
+        title: "Invalid Date/Time",
+        description: "Please select a future date and time for the reminder.",
+        variant: "destructive",
+      });
+      return;
     }
 
     addReminder.mutate({
       title: newReminder.title,
       description: newReminder.description || '',
-      reminderType: newReminder.type,
+      reminderType: newReminder.reminderType,
       scheduledAt: scheduledAt.toISOString(),
       isActive: true,
     });
@@ -162,9 +170,34 @@ export default function RemindersPage() {
     }
   };
 
+  // Calendar helper functions
+  const getDateKey = (date: Date) => {
+    return format(date, 'yyyy-MM-dd');
+  };
+
+  const getRemindersByDate = (date: Date) => {
+    const dateKey = getDateKey(date);
+    return reminders.filter((reminder: UIReminder) => {
+      const reminderDate = new Date(reminder.scheduledAt);
+      return getDateKey(reminderDate) === dateKey;
+    });
+  };
+
+  const getDaysWithReminders = () => {
+    const daysWithReminders = new Set<string>();
+    reminders.forEach((reminder: UIReminder) => {
+      const reminderDate = new Date(reminder.scheduledAt);
+      daysWithReminders.add(getDateKey(reminderDate));
+    });
+    return daysWithReminders;
+  };
+
+  const selectedDateReminders = getRemindersByDate(selectedCalendarDate);
+
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <>
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -176,7 +209,7 @@ export default function RemindersPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
           {/* Add Reminder Form */}
           <div className="lg:col-span-1">
             <Card>
@@ -209,8 +242,8 @@ export default function RemindersPage() {
                     </label>
                     <select
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      value={newReminder.type}
-                      onChange={(e) => setNewReminder({ ...newReminder, type: e.target.value as any })}
+                      value={newReminder.reminderType}
+                      onChange={(e) => setNewReminder({ ...newReminder, reminderType: e.target.value as any })}
                       data-testid="select-reminder-type"
                     >
                       <option value="medication">Medication</option>
@@ -219,6 +252,42 @@ export default function RemindersPage() {
                       <option value="exercise">Exercise</option>
                       <option value="other">Other</option>
                     </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Date *
+                    </label>
+                    <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !newReminder.date && "text-muted-foreground"
+                          )}
+                          data-testid="button-reminder-date"
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {newReminder.date ? format(newReminder.date, "PPP") : <span>Pick a date</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={newReminder.date}
+                          onSelect={(date) => {
+                            if (date) {
+                              setNewReminder({ ...newReminder, date });
+                              setIsDatePickerOpen(false);
+                            }
+                          }}
+                          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                          initialFocus
+                          data-testid="calendar-reminder-date"
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </div>
 
                   <div>
@@ -298,7 +367,7 @@ export default function RemindersPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-gray-600">Active Reminders</span>
                     <Badge className="bg-green-100 text-green-800">
-                      {reminders.filter((r: Reminder) => r.active).length}
+                      {reminders.filter((r: UIReminder) => r.isActive).length}
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
@@ -314,12 +383,138 @@ export default function RemindersPage() {
             </Card>
           </div>
 
-          {/* Reminders List */}
-          <div className="lg:col-span-2">
+          {/* Calendar View */}
+          <div className="xl:col-span-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <CalendarIcon className="h-5 w-5 text-blue-600" />
+                  <span>Calendar View</span>
+                </CardTitle>
+                <CardDescription>
+                  Select a date to view reminders for that day
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Calendar
+                  mode="single"
+                  selected={selectedCalendarDate}
+                  onSelect={(date) => date && setSelectedCalendarDate(date)}
+                  className="rounded-md border mx-auto"
+                  modifiers={{
+                    hasReminders: Array.from(getDaysWithReminders()).map(dateStr => new Date(dateStr))
+                  }}
+                  modifiersStyles={{
+                    hasReminders: {
+                      backgroundColor: '#3b82f6',
+                      color: 'white',
+                      fontWeight: 'bold'
+                    }
+                  }}
+                  data-testid="calendar-view"
+                />
+                <div className="mt-4 text-center">
+                  <p className="text-sm text-gray-600">
+                    Selected: <span className="font-medium">{format(selectedCalendarDate, "PPP")}</span>
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Blue dates have reminders
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Day Detail - Reminders for Selected Date */}
+          <div className="xl:col-span-1">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <i className="fas fa-list text-blue-600"></i>
+                  <span>Reminders for {format(selectedCalendarDate, "MMM d")}</span>
+                </CardTitle>
+                <CardDescription>
+                  {selectedDateReminders.length} reminder{selectedDateReminders.length !== 1 ? 's' : ''} scheduled
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {selectedDateReminders.length > 0 ? (
+                  <div className="space-y-3">
+                    {selectedDateReminders.map((reminder: UIReminder) => (
+                      <div
+                        key={reminder.id}
+                        className={`border rounded-lg p-3 transition-all ${
+                          reminder.isActive ? 'border-blue-200 bg-blue-50' : 'border-gray-200 bg-gray-50 opacity-60'
+                        }`}
+                        data-testid={`selected-date-reminder-${reminder.id}`}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2 mb-1">
+                              <i className={`${getTypeIcon(reminder.reminderType)} text-sm`}></i>
+                              <h4 className="font-medium text-gray-900 text-sm">{reminder.title}</h4>
+                              {reminder.isActive && (
+                                <Badge className="bg-green-100 text-green-800 text-xs">Active</Badge>
+                              )}
+                            </div>
+                            
+                            {reminder.description && (
+                              <p className="text-gray-600 text-xs mb-2">{reminder.description}</p>
+                            )}
+                            
+                            <div className="flex items-center space-x-3 text-xs text-gray-500">
+                              <span>
+                                <i className="fas fa-clock mr-1"></i>
+                                {new Date(reminder.scheduledAt).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                              <Badge className={`${getTypeColor(reminder.reminderType)} text-xs`}>
+                                {reminder.reminderType}
+                              </Badge>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center space-x-1 ml-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => toggleReminder.mutate({ id: reminder.id, isActive: !reminder.isActive })}
+                              data-testid={`button-day-toggle-${reminder.id}`}
+                              className="h-7 w-7 p-0"
+                            >
+                              <i className={`fas ${reminder.isActive ? 'fa-pause' : 'fa-play'} text-xs`}></i>
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-red-600 hover:text-red-700 h-7 w-7 p-0"
+                              onClick={() => deleteReminder.mutate(reminder.id)}
+                              data-testid={`button-day-delete-${reminder.id}`}
+                            >
+                              <i className="fas fa-trash text-xs"></i>
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-6">
+                    <i className="fas fa-calendar-day text-3xl text-gray-400 mb-3"></i>
+                    <p className="text-gray-500 text-sm mb-1">No reminders for this date</p>
+                    <p className="text-xs text-gray-400">Select a date with reminders (blue dates) or add a new one</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* All Reminders List */}
+        <div className="mt-8">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <i className="fas fa-list text-blue-600"></i>
                   <span>Your Reminders</span>
                 </CardTitle>
                 <CardDescription>
@@ -334,23 +529,23 @@ export default function RemindersPage() {
                   </div>
                 ) : reminders.length > 0 ? (
                   <div className="space-y-4">
-                    {reminders.map((reminder: Reminder) => (
+                    {reminders.map((reminder: UIReminder) => (
                       <div
                         key={reminder.id}
                         className={`border rounded-lg p-4 transition-all ${
-                          reminder.active ? 'border-blue-200 bg-blue-50' : 'border-gray-200 bg-gray-50 opacity-60'
+                          reminder.isActive ? 'border-blue-200 bg-blue-50' : 'border-gray-200 bg-gray-50 opacity-60'
                         }`}
                         data-testid={`reminder-${reminder.id}`}
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center space-x-3 mb-2">
-                              <i className={`${getTypeIcon(reminder.type)} text-lg`}></i>
+                              <i className={`${getTypeIcon(reminder.reminderType)} text-lg`}></i>
                               <h3 className="font-semibold text-gray-900">{reminder.title}</h3>
-                              <Badge className={getTypeColor(reminder.type)}>
-                                {reminder.type}
+                              <Badge className={getTypeColor(reminder.reminderType)}>
+                                {reminder.reminderType}
                               </Badge>
-                              {reminder.active && (
+                              {reminder.isActive && (
                                 <Badge className="bg-green-100 text-green-800">Active</Badge>
                               )}
                             </div>
@@ -362,15 +557,15 @@ export default function RemindersPage() {
                             <div className="flex items-center space-x-4 text-sm text-gray-500">
                               <span>
                                 <i className="fas fa-clock mr-1"></i>
-                                {reminder.time}
+                                {new Date(reminder.scheduledAt).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' })}
                               </span>
                               <span>
                                 <i className="fas fa-repeat mr-1"></i>
-                                {reminder.frequency}
+                                {reminder.frequency || 'once'}
                               </span>
                               <span>
                                 <i className="fas fa-bell mr-1"></i>
-                                {reminder.nextReminder}
+                                {new Date(reminder.scheduledAt).toLocaleDateString()} at {new Date(reminder.scheduledAt).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' })}
                               </span>
                             </div>
                           </div>
@@ -379,11 +574,11 @@ export default function RemindersPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => toggleReminder.mutate({ id: reminder.id, active: !reminder.active })}
+                              onClick={() => toggleReminder.mutate({ id: reminder.id, isActive: !reminder.isActive })}
                               data-testid={`button-toggle-${reminder.id}`}
                             >
-                              <i className={`fas ${reminder.active ? 'fa-pause' : 'fa-play'} mr-1`}></i>
-                              {reminder.active ? 'Pause' : 'Resume'}
+                              <i className={`fas ${reminder.isActive ? 'fa-pause' : 'fa-play'} mr-1`}></i>
+                              {reminder.isActive ? 'Pause' : 'Resume'}
                             </Button>
                             <Button
                               variant="outline"
@@ -442,10 +637,10 @@ export default function RemindersPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="font-medium text-gray-900">Snooze Option</h4>
-                      <p className="text-sm text-gray-600">Allow snoozing reminders for 5 minutes</p>
+                      <p className="text-sm text-gray-600">Allow snoozing reminders for 5–15 minutes</p>
                     </div>
-                    <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 transition-colors">
-                      <span className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1"></span>
+                    <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-blue-600 transition-colors" data-testid="toggle-snooze">
+                      <span className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-6"></span>
                     </button>
                   </div>
                 </div>
@@ -454,6 +649,6 @@ export default function RemindersPage() {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
