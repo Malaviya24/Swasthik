@@ -31,6 +31,7 @@ PORT = "5000"
 
 [agent]
 integrations = ["firebase_barebones_javascript:1.0.0", "javascript_gemini:1.0.0"]
+expertMode = true
 
 [workflows]
 runButton = "Project"
