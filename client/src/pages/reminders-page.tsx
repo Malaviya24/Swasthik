@@ -92,34 +92,41 @@ const reminderFormSchema = z.object({
   time: z.string().min(1, 'Time is required'),
   period: z.enum(['AM', 'PM']),
 }).refine((data) => {
-  // Validate time format first
-  if (!data.time || !/^\d{1,2}:\d{2}$/.test(data.time)) {
+  try {
+    // Validate time format first
+    if (!data.time || !/^\d{1,2}:\d{2}$/.test(data.time)) {
+      return false;
+    }
+    
+    // Convert 12-hour format to 24-hour format for validation
+    const [hours, minutes] = data.time.split(':');
+    const hourNum = parseInt(hours);
+    const minuteNum = parseInt(minutes);
+    
+    if (isNaN(hourNum) || isNaN(minuteNum) || hourNum < 1 || hourNum > 12 || minuteNum < 0 || minuteNum > 59) {
+      return false;
+    }
+    
+    let hour24 = hourNum;
+    if (data.period === 'PM' && hour24 !== 12) hour24 += 12;
+    if (data.period === 'AM' && hour24 === 12) hour24 = 0;
+    
+    const timeString = `${hour24.toString().padStart(2, '0')}:${minutes}:00`;
+    const scheduledDate = new Date(`${data.date}T${timeString}`);
+    
+    if (!isValid(scheduledDate)) {
+      return false;
+    }
+    
+    // Allow times that are at least 1 minute in the future to avoid timezone issues
+    const now = new Date();
+    const oneMinuteFromNow = new Date(now.getTime() + 60000); // Add 1 minute buffer
+    return scheduledDate >= oneMinuteFromNow;
+  } catch (error) {
     return false;
   }
-  
-  // Convert 12-hour format to 24-hour format for validation
-  const [hours, minutes] = data.time.split(':');
-  const hourNum = parseInt(hours);
-  const minuteNum = parseInt(minutes);
-  
-  if (isNaN(hourNum) || isNaN(minuteNum) || hourNum < 1 || hourNum > 12 || minuteNum < 0 || minuteNum > 59) {
-    return false;
-  }
-  
-  let hour24 = hourNum;
-  if (data.period === 'PM' && hour24 !== 12) hour24 += 12;
-  if (data.period === 'AM' && hour24 === 12) hour24 = 0;
-  
-  const timeString = `${hour24.toString().padStart(2, '0')}:${minutes}`;
-  const scheduledDate = new Date(`${data.date}T${timeString}`);
-  
-  if (!isValid(scheduledDate)) {
-    return false;
-  }
-  
-  return isAfter(scheduledDate, new Date());
 }, {
-  message: 'Please select a future date and time',
+  message: 'Please select a future date and time (at least 1 minute from now)',
   path: ['date'],
 });
 
@@ -270,37 +277,71 @@ export default function RemindersPage() {
 
   // Handle form submission
   const onSubmit = (data: ReminderFormData) => {
-    const time24 = convertTo24Hour(data.time, data.period);
-    const scheduledAt = new Date(`${data.date}T${time24}`);
-    
-    const reminderData: InsertReminder = {
-      title: data.title,
-      description: data.description || null,
-      reminderType: data.reminderType,
-      scheduledAt: scheduledAt,
-      userId: 'demo-user-123', // Using demo user ID like the backend
-      isCompleted: false,
-      isActive: true,
-    };
+    try {
+      const time24 = convertTo24Hour(data.time, data.period);
+      const scheduledAt = new Date(`${data.date}T${time24}:00`);
+      
+      if (!isValid(scheduledAt)) {
+        toast({
+          title: "Invalid Date/Time",
+          description: "Please check your date and time inputs.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      const reminderData: InsertReminder = {
+        title: data.title,
+        description: data.description || null,
+        reminderType: data.reminderType,
+        scheduledAt: scheduledAt,
+        userId: 'demo-user-123', // Using demo user ID like the backend
+        isCompleted: false,
+        isActive: true,
+      };
 
-    addReminder.mutate(reminderData);
+      addReminder.mutate(reminderData);
+    } catch (error) {
+      toast({
+        title: "Error Creating Reminder",
+        description: "Please check your date and time inputs and try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Handle edit form submission
   const onEditSubmit = (data: ReminderFormData) => {
     if (!editingReminder) return;
     
-    const time24 = convertTo24Hour(data.time, data.period);
-    const scheduledAt = new Date(`${data.date}T${time24}`);
-    
-    const reminderData: Partial<InsertReminder> = {
-      title: data.title,
-      description: data.description || null,
-      reminderType: data.reminderType,
-      scheduledAt: scheduledAt,
-    };
+    try {
+      const time24 = convertTo24Hour(data.time, data.period);
+      const scheduledAt = new Date(`${data.date}T${time24}:00`);
+      
+      if (!isValid(scheduledAt)) {
+        toast({
+          title: "Invalid Date/Time",
+          description: "Please check your date and time inputs.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      const reminderData: Partial<InsertReminder> = {
+        title: data.title,
+        description: data.description || null,
+        reminderType: data.reminderType,
+        scheduledAt: scheduledAt,
+      };
 
-    updateReminder.mutate({ id: editingReminder.id, data: reminderData });
+      updateReminder.mutate({ id: editingReminder.id, data: reminderData });
+    } catch (error) {
+      toast({
+        title: "Error Updating Reminder",
+        description: "Please check your date and time inputs and try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Handle edit button click
@@ -891,18 +932,15 @@ export default function RemindersPage() {
                       {reminderFilter === 'today' ? "Today's Reminders" :
                        reminderFilter === 'upcoming' ? "Upcoming Reminders" :
                        reminderFilter === 'active' ? "Active Reminders" :
-                       isSameDay(selectedCalendarDate, new Date()) ? "Today's Reminders" :
+                       sameDay(selectedCalendarDate, new Date()) ? "Today's Reminders" :
                        `Reminders for ${format(selectedCalendarDate, 'MMM d, yyyy')}`}
                     </CardTitle>
                     <CardDescription className="text-sm text-gray-600">
                       {reminderFilter === 'all' ?
-                        (selectedDateReminders.length === 0 
+                        (displayedReminders.length === 0 
                           ? 'No reminders scheduled for this day' 
-                          : `${selectedDateReminders.length} reminder${selectedDateReminders.length > 1 ? 's' : ''} scheduled`) :
-                        `Showing ${displayedReminders.length} ${reminderFilter} reminder${displayedReminders.length !== 1 ? 's' : ''}` &&
-                        selectedDateReminders.length === 0 
-                          ? 'No reminders scheduled for this day' 
-                          : `${selectedDateReminders.length} reminder${selectedDateReminders.length > 1 ? 's' : ''} scheduled`}
+                          : `${displayedReminders.length} reminder${displayedReminders.length > 1 ? 's' : ''} scheduled`) :
+                        `Showing ${displayedReminders.length} ${reminderFilter} reminder${displayedReminders.length !== 1 ? 's' : ''}`}
                     </CardDescription>
                   </div>
                 </div>
