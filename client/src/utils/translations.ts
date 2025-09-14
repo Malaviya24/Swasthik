@@ -64,7 +64,27 @@ export const translations = {
     'features.multilingual': 'Multilingual Support',
     'features.multilingual_desc': 'Available in multiple Indian languages',
     'features.ai_powered': 'AI-Powered',
-    'features.ai_powered_desc': 'Advanced AI for accurate health guidance'
+    'features.ai_powered_desc': 'Advanced AI for accurate health guidance',
+    'features.image_analysis': 'Image Analysis',
+    'features.image_analysis_desc': 'Upload photos of health conditions and get AI-powered analysis and medical guidance',
+    'features.voice_interaction': 'Voice Interaction',
+    'features.voice_interaction_desc': 'Speak your health concerns and receive voice responses in your preferred language',
+    'features.health_center_finder': 'Health Center Finder',
+    'features.health_center_finder_desc': 'Find nearby hospitals, clinics, and healthcare facilities with directions and contact details',
+    
+    // Landing page sections
+    'landing.hero_description': 'Get instant health guidance, symptom analysis, and medical information in your preferred language. Designed specifically for rural and semi-urban communities across India.',
+    'landing.features_heading': 'Comprehensive Healthcare Features',
+    'landing.features_subheading': 'Everything you need for your health and wellness journey, powered by advanced AI technology',
+    'landing.language_support_heading': 'Multilingual Healthcare Support',
+    'landing.language_support_subheading': 'Get health assistance in your preferred language - breaking barriers to healthcare access',
+    'landing.stats_available_always': 'Available Always',
+    'landing.stats_languages_supported': 'Languages Supported',
+    'landing.stats_accuracy_rate': 'Accuracy Rate',
+    'landing.stats_health_topics': 'Health Topics',
+    'landing.cta_heading': 'Ready to Start Your Health Journey?',
+    'landing.cta_subheading': 'Join thousands of users who trust Swasthik for their healthcare needs',
+    'landing.get_started_now': 'Get Started Now'
   },
   
   hi: {
@@ -132,7 +152,27 @@ export const translations = {
     'features.multilingual': 'बहुभाषी समर्थन',
     'features.multilingual_desc': 'कई भारतीय भाषाओं में उपलब्ध',
     'features.ai_powered': 'AI-संचालित',
-    'features.ai_powered_desc': 'सटीक स्वास्थ्य मार्गदर्शन के लिए उन्नत AI'
+    'features.ai_powered_desc': 'सटीक स्वास्थ्य मार्गदर्शन के लिए उन्नत AI',
+    'features.image_analysis': 'छवि विश्लेषण',
+    'features.image_analysis_desc': 'स्वास्थ्य स्थितियों की तस्वीरें अपलोड करें और AI-संचालित विश्लेषण और चिकित्सा मार्गदर्शन प्राप्त करें',
+    'features.voice_interaction': 'आवाज़ इंटरैक्शन',
+    'features.voice_interaction_desc': 'अपनी स्वास्थ्य चिंताओं को बोलें और अपनी पसंदीदा भाषा में आवाज़ की प्रतिक्रियाएं प्राप्त करें',
+    'features.health_center_finder': 'स्वास्थ्य केंद्र खोजक',
+    'features.health_center_finder_desc': 'दिशा-निर्देश और संपर्क विवरण के साथ पास के अस्पतालों, क्लीनिकों और स्वास्थ्य सुविधाओं को खोजें',
+    
+    // Landing page sections
+    'landing.hero_description': 'अपनी पसंदीदा भाषा में तुरंत स्वास्थ्य मार्गदर्शन, लक्षण विश्लेषण और चिकित्सा जानकारी प्राप्त करें। भारत भर के ग्रामीण और अर्ध-शहरी समुदायों के लिए विशेष रूप से डिज़ाइन किया गया।',
+    'landing.features_heading': 'व्यापक स्वास्थ्य सुविधाएं',
+    'landing.features_subheading': 'उन्नत AI तकनीक द्वारा संचालित आपकी स्वास्थ्य और कल्याण यात्रा के लिए आवश्यक सब कुछ',
+    'landing.language_support_heading': 'बहुभाषी स्वास्थ्य सहायता',
+    'landing.language_support_subheading': 'अपनी पसंदीदा भाषा में स्वास्थ्य सहायता प्राप्त करें - स्वास्थ्य पहुंच की बाधाओं को तोड़ना',
+    'landing.stats_available_always': 'हमेशा उपलब्ध',
+    'landing.stats_languages_supported': 'समर्थित भाषाएं',
+    'landing.stats_accuracy_rate': 'सटीकता दर',
+    'landing.stats_health_topics': 'स्वास्थ्य विषय',
+    'landing.cta_heading': 'अपनी स्वास्थ्य यात्रा शुरू करने के लिए तैयार हैं?',
+    'landing.cta_subheading': 'हजारों उपयोगकर्ताओं में शामिल हों जो अपनी स्वास्थ्य आवश्यकताओं के लिए स्वास्थिक पर भरोसा करते हैं',
+    'landing.get_started_now': 'अभी शुरू करें'
   },
   
   bn: {
@@ -200,7 +240,27 @@ export const translations = {
     'features.multilingual': 'বহুভাষিক সহায়তা',
     'features.multilingual_desc': 'একাধিক ভারতীয় ভাষায় উপলব্ধ',
     'features.ai_powered': 'AI-চালিত',
-    'features.ai_powered_desc': 'সঠিক স্বাস্থ্য নির্দেশনার জন্য উন্নত AI'
+    'features.ai_powered_desc': 'সঠিক স্বাস্থ্য নির্দেশনার জন্য উন্নত AI',
+    'features.image_analysis': 'ছবি বিশ্লেষণ',
+    'features.image_analysis_desc': 'স্বাস্থ্য অবস্থার ছবি আপলোড করুন এবং AI-চালিত বিশ্লেষণ ও চিকিৎসা নির্দেশনা পান',
+    'features.voice_interaction': 'ভয়েস ইন্টারঅ্যাকশন',
+    'features.voice_interaction_desc': 'আপনার স্বাস্থ্য উদ্বেগ বলুন এবং আপনার পছন্দের ভাষায় ভয়েস প্রতিক্রিয়া পান',
+    'features.health_center_finder': 'স্বাস্থ্য কেন্দ্র খোঁজক',
+    'features.health_center_finder_desc': 'নিকটবর্তী হাসপাতাল, ক্লিনিক এবং স্বাস্থ্যসেবা সুবিধা দিকনির্দেশ এবং যোগাযোগের বিবরণ সহ খুঁজুন',
+    
+    // Landing page sections
+    'landing.hero_description': 'আপনার পছন্দের ভাষায় তাৎক্ষণিক স্বাস্থ্য নির্দেশনা, লক্ষণ বিশ্লেষণ এবং চিকিৎসা তথ্য পান। ভারত জুড়ে গ্রামীণ এবং আধা-শহুরে সম্প্রদায়ের জন্য বিশেষভাবে ডিজাইন করা।',
+    'landing.features_heading': 'ব্যাপক স্বাস্থ্যসেবা বৈশিষ্ট্য',
+    'landing.features_subheading': 'উন্নত AI প্রযুক্তি দ্বারা চালিত আপনার স্বাস্থ্য এবং সুস্থতার যাত্রার জন্য প্রয়োজনীয় সবকিছু',
+    'landing.language_support_heading': 'বহুভাষিক স্বাস্থ্যসেবা সহায়তা',
+    'landing.language_support_subheading': 'আপনার পছন্দের ভাষায় স্বাস্থ্য সহায়তা পান - স্বাস্থ্যসেবা অ্যাক্সেসের বাধা ভাঙা',
+    'landing.stats_available_always': 'সর্বদা উপলব্ধ',
+    'landing.stats_languages_supported': 'সমর্থিত ভাষা',
+    'landing.stats_accuracy_rate': 'নির্ভুলতার হার',
+    'landing.stats_health_topics': 'স্বাস্থ্য বিষয়',
+    'landing.cta_heading': 'আপনার স্বাস্থ্য যাত্রা শুরু করতে প্রস্তুত?',
+    'landing.cta_subheading': 'হাজারো ব্যবহারকারীর সাথে যোগ দিন যারা তাদের স্বাস্থ্যসেবার প্রয়োজনে স্বাস্থিকের উপর নির্ভর করেন',
+    'landing.get_started_now': 'এখনই শুরু করুন'
   },
   
   ta: {

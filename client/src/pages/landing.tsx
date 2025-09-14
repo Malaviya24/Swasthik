@@ -23,18 +23,18 @@ export default function Landing() {
     },
     {
       icon: 'fas fa-camera',
-      title: 'Image Analysis',
-      description: 'Upload photos of health conditions and get AI-powered analysis and medical guidance'
+      title: translate('features.image_analysis'),
+      description: translate('features.image_analysis_desc')
     },
     {
       icon: 'fas fa-microphone',
-      title: 'Voice Interaction',
-      description: 'Speak your health concerns and receive voice responses in your preferred language'
+      title: translate('features.voice_interaction'),
+      description: translate('features.voice_interaction_desc')
     },
     {
       icon: 'fas fa-map-marker-alt',
-      title: 'Health Center Finder',
-      description: 'Find nearby hospitals, clinics, and healthcare facilities with directions and contact details'
+      title: translate('features.health_center_finder'),
+      description: translate('features.health_center_finder_desc')
     }
   ];
 
@@ -66,8 +66,7 @@ export default function Landing() {
               {translate('app.subtitle')}
             </p>
             <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-6 sm:mb-8 max-w-xs sm:max-w-2xl lg:max-w-4xl mx-auto text-blue-50 leading-relaxed px-4">
-              Get instant health guidance, symptom analysis, and medical information in your preferred language. 
-              Designed specifically for rural and semi-urban communities across India.
+              {translate('landing.hero_description')}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 lg:gap-6 justify-center items-center px-4">
               <Link href="/chat">
@@ -99,10 +98,10 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8 sm:mb-12 lg:mb-16">
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-3 sm:mb-4 lg:mb-6">
-              Comprehensive Healthcare Features
+              {translate('landing.features_heading')}
             </h2>
             <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-xs sm:max-w-2xl lg:max-w-4xl mx-auto px-4">
-              Everything you need for your health and wellness journey, powered by advanced AI technology
+              {translate('landing.features_subheading')}
             </p>
           </div>
           
@@ -130,10 +129,10 @@ export default function Landing() {
       <div className="py-12 sm:py-16 lg:py-20 bg-gradient-to-r from-green-50 to-blue-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-3 sm:mb-4 lg:mb-6">
-            Multilingual Healthcare Support
+            {translate('landing.language_support_heading')}
           </h2>
           <p className="text-base sm:text-lg lg:text-xl text-gray-600 mb-6 sm:mb-8 lg:mb-12 max-w-xs sm:max-w-2xl lg:max-w-4xl mx-auto px-4">
-            Get health assistance in your preferred language - breaking barriers to healthcare access
+            {translate('landing.language_support_subheading')}
           </p>
           
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 lg:gap-6 max-w-4xl mx-auto">
@@ -157,19 +156,19 @@ export default function Landing() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 lg:gap-12 text-center">
             <div className="p-4 sm:p-6 rounded-lg hover:bg-blue-50 transition-colors">
               <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-blue-600 mb-2 sm:mb-3">24/7</div>
-              <div className="text-gray-600 text-sm sm:text-base lg:text-lg font-medium">Available Always</div>
+              <div className="text-gray-600 text-sm sm:text-base lg:text-lg font-medium">{translate('landing.stats_available_always')}</div>
             </div>
             <div className="p-4 sm:p-6 rounded-lg hover:bg-green-50 transition-colors">
               <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-green-600 mb-2 sm:mb-3">6+</div>
-              <div className="text-gray-600 text-sm sm:text-base lg:text-lg font-medium">Languages Supported</div>
+              <div className="text-gray-600 text-sm sm:text-base lg:text-lg font-medium">{translate('landing.stats_languages_supported')}</div>
             </div>
             <div className="p-4 sm:p-6 rounded-lg hover:bg-blue-50 transition-colors">
               <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-blue-600 mb-2 sm:mb-3">95%</div>
-              <div className="text-gray-600 text-sm sm:text-base lg:text-lg font-medium">Accuracy Rate</div>
+              <div className="text-gray-600 text-sm sm:text-base lg:text-lg font-medium">{translate('landing.stats_accuracy_rate')}</div>
             </div>
             <div className="p-4 sm:p-6 rounded-lg hover:bg-green-50 transition-colors">
               <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-green-600 mb-2 sm:mb-3">1000+</div>
-              <div className="text-gray-600 text-sm sm:text-base lg:text-lg font-medium">Health Topics</div>
+              <div className="text-gray-600 text-sm sm:text-base lg:text-lg font-medium">{translate('landing.stats_health_topics')}</div>
             </div>
           </div>
         </div>
@@ -179,10 +178,10 @@ export default function Landing() {
       <div className="py-12 sm:py-16 lg:py-20 bg-gradient-to-r from-blue-600 to-green-600 text-white">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6 lg:mb-8 leading-tight">
-            Ready to Start Your Health Journey?
+            {translate('landing.cta_heading')}
           </h2>
           <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-6 sm:mb-8 lg:mb-10 text-blue-100 max-w-2xl mx-auto leading-relaxed">
-            Join thousands of users who trust Swasthik for their healthcare needs
+            {translate('landing.cta_subheading')}
           </p>
           <Link href="/chat">
             <Button 
@@ -191,7 +190,7 @@ export default function Landing() {
               data-testid="button-cta-chat"
             >
               <i className="fas fa-arrow-right mr-2"></i>
-              Get Started Now
+{translate('landing.get_started_now')}
             </Button>
           </Link>
         </div>

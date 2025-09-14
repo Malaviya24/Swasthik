@@ -12,26 +12,17 @@ interface SidebarProps {
   onShowSymptomChecker: () => void;
 }
 
-const languages = [
-  { code: 'en', name: 'English' },
-  { code: 'hi', name: 'हिंदी (Hindi)' },
-  { code: 'bn', name: 'বাংলা (Bengali)' },
-  { code: 'ta', name: 'தமிழ் (Tamil)' },
-  { code: 'te', name: 'తెలుగు (Telugu)' },
-  { code: 'mr', name: 'मराठी (Marathi)' },
-];
-
 export function Sidebar({ isOpen, onClose, activeTab, onTabChange, onShowSymptomChecker }: SidebarProps) {
   const { user, signOut } = useAuth();
   const { currentLanguage, setLanguage, translate } = useLanguage();
 
   const menuItems = [
-    { id: 'chat', icon: 'fas fa-comments', label: 'Chat', onClick: () => onTabChange('chat') },
-    { id: 'symptom-checker', icon: 'fas fa-stethoscope', label: 'Symptom Checker', onClick: onShowSymptomChecker },
-    { id: 'medication-lookup', icon: 'fas fa-pills', label: 'Medications', onClick: () => onTabChange('medication-lookup') },
-    { id: 'health-centers', icon: 'fas fa-map-marker-alt', label: 'Find Centers', onClick: () => onTabChange('health-centers') },
-    { id: 'reminders', icon: 'fas fa-calendar-check', label: 'Reminders', onClick: () => onTabChange('reminders'), badge: '3' },
-    { id: 'health-news', icon: 'fas fa-newspaper', label: 'Health News', onClick: () => onTabChange('health-news') },
+    { id: 'chat', icon: 'fas fa-comments', label: translate('sidebar.chat'), onClick: () => onTabChange('chat') },
+    { id: 'symptom-checker', icon: 'fas fa-stethoscope', label: translate('sidebar.symptom_checker'), onClick: onShowSymptomChecker },
+    { id: 'medication-lookup', icon: 'fas fa-pills', label: translate('sidebar.medications'), onClick: () => onTabChange('medication-lookup') },
+    { id: 'health-centers', icon: 'fas fa-map-marker-alt', label: translate('sidebar.find_centers'), onClick: () => onTabChange('health-centers') },
+    { id: 'reminders', icon: 'fas fa-calendar-check', label: translate('sidebar.reminders'), onClick: () => onTabChange('reminders'), badge: '3' },
+    { id: 'health-news', icon: 'fas fa-newspaper', label: translate('sidebar.health_news'), onClick: () => onTabChange('health-news') },
   ];
 
   const getUserInitials = (displayName: string | null | undefined) => {
@@ -106,13 +97,13 @@ export function Sidebar({ isOpen, onClose, activeTab, onTabChange, onShowSymptom
 
       {/* Language Selector */}
       <div className="p-4 border-t border-border">
-        <label className="block text-sm font-medium mb-2">Language</label>
+        <label className="block text-sm font-medium mb-2">{translate('sidebar.language')}</label>
         <Select value={currentLanguage} onValueChange={setLanguage}>
           <SelectTrigger className="w-full" data-testid="select-language">
-            <SelectValue placeholder="Select language" />
+            <SelectValue placeholder={translate('sidebar.select_language')} />
           </SelectTrigger>
           <SelectContent>
-            {languages.map((lang) => (
+            {LANGUAGES.map((lang) => (
               <SelectItem key={lang.code} value={lang.code}>
                 {lang.name}
               </SelectItem>
