@@ -246,7 +246,7 @@ export default function RemindersPage() {
                       value={newReminder.title}
                       onChange={(e) => setNewReminder({ ...newReminder, title: e.target.value })}
                       data-testid="input-reminder-title"
-                      className="h-12 border-2 border-gray-200 focus:border-blue-500 transition-colors"
+                      className="h-12 border-2 border-gray-200 focus:border-blue-500 transition-all duration-300 hover:border-blue-400 hover:shadow-md focus:shadow-lg"
                     />
                   </div>
 
@@ -255,7 +255,7 @@ export default function RemindersPage() {
                       Category
                     </label>
                     <select
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 transition-colors bg-white h-12"
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 transition-all duration-300 bg-white h-12 hover:border-blue-400 hover:shadow-md cursor-pointer"
                       value={newReminder.reminderType}
                       onChange={(e) => setNewReminder({ ...newReminder, reminderType: e.target.value as any })}
                       data-testid="select-reminder-type"
@@ -270,51 +270,99 @@ export default function RemindersPage() {
 
                   <div>
                     <label className="block text-sm font-semibold text-gray-800 mb-3">
-                      Schedule Date *
+                      📅 Schedule Date *
                     </label>
                     <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
                           className={cn(
-                            "w-full justify-start text-left font-normal h-12 border-2 border-gray-200 hover:border-blue-300",
-                            !newReminder.date && "text-muted-foreground"
+                            "w-full justify-start text-left font-medium h-14 border-2 border-gray-300 hover:border-blue-500 hover:shadow-md transition-all duration-200 bg-white rounded-xl",
+                            !newReminder.date && "text-gray-500"
                           )}
                           data-testid="button-reminder-date"
                         >
-                          <CalendarIcon className="mr-3 h-5 w-5 text-blue-600" />
-                          {newReminder.date ? format(newReminder.date, "EEEE, MMMM d, yyyy") : <span>Select date</span>}
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                              <CalendarIcon className="h-4 w-4 text-blue-600" />
+                            </div>
+                            <div className="flex flex-col items-start">
+                              <span className="text-xs text-gray-500 uppercase tracking-wide">Date</span>
+                              <span className="text-sm font-medium text-gray-900">
+                                {newReminder.date ? format(newReminder.date, "EEE, MMM d, yyyy") : "Select date"}
+                              </span>
+                            </div>
+                          </div>
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={newReminder.date}
-                          onSelect={(date) => {
-                            if (date) {
-                              setNewReminder({ ...newReminder, date });
-                              setIsDatePickerOpen(false);
-                            }
-                          }}
-                          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                          initialFocus
-                          data-testid="calendar-reminder-date"
-                        />
+                      <PopoverContent className="w-auto p-0 shadow-2xl border-0 rounded-2xl" align="start">
+                        <div className="bg-white rounded-2xl overflow-hidden">
+                          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 text-white">
+                            <h3 className="font-semibold text-lg">Select Date</h3>
+                            <p className="text-blue-100 text-sm">Choose when you want to be reminded</p>
+                          </div>
+                          <Calendar
+                            mode="single"
+                            selected={newReminder.date}
+                            onSelect={(date) => {
+                              if (date) {
+                                setNewReminder({ ...newReminder, date });
+                                setIsDatePickerOpen(false);
+                              }
+                            }}
+                            disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                            initialFocus
+                            data-testid="calendar-reminder-date"
+                            className="p-4"
+                            classNames={{
+                              months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+                              month: "space-y-4",
+                              caption: "flex justify-center pt-1 relative items-center",
+                              caption_label: "text-lg font-semibold text-gray-900",
+                              nav: "space-x-1 flex items-center",
+                              nav_button: "h-8 w-8 bg-transparent p-0 hover:bg-blue-100 rounded-lg transition-colors",
+                              nav_button_previous: "absolute left-1",
+                              nav_button_next: "absolute right-1",
+                              table: "w-full border-collapse space-y-1",
+                              head_row: "flex",
+                              head_cell: "text-gray-500 rounded-md w-8 font-normal text-[0.8rem]",
+                              row: "flex w-full mt-2",
+                              cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-blue-100 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20 [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-blue-50 [&:has([aria-selected].day-range-middle)]:rounded-none",
+                              day: "h-8 w-8 p-0 font-normal aria-selected:opacity-100 hover:bg-blue-50 rounded-lg transition-colors",
+                              day_range_end: "day-range-end",
+                              day_selected: "bg-blue-600 text-white hover:bg-blue-700 hover:text-white focus:bg-blue-600 focus:text-white font-semibold",
+                              day_today: "bg-blue-100 text-blue-900 font-semibold",
+                              day_outside: "text-gray-400 opacity-50",
+                              day_disabled: "text-gray-400 opacity-50 cursor-not-allowed",
+                              day_hidden: "invisible",
+                            }}
+                          />
+                        </div>
                       </PopoverContent>
                     </Popover>
                   </div>
 
                   <div>
                     <label className="block text-sm font-semibold text-gray-800 mb-3">
-                      Time *
+                      🕐 Time *
                     </label>
-                    <Input
-                      type="time"
-                      value={newReminder.time}
-                      onChange={(e) => setNewReminder({ ...newReminder, time: e.target.value })}
-                      data-testid="input-reminder-time"
-                      className="h-12 border-2 border-gray-200 focus:border-blue-500 transition-colors"
-                    />
+                    <div className="relative">
+                      <Input
+                        type="time"
+                        value={newReminder.time}
+                        onChange={(e) => setNewReminder({ ...newReminder, time: e.target.value })}
+                        data-testid="input-reminder-time"
+                        className="h-14 pl-14 border-2 border-gray-300 focus:border-blue-500 transition-all duration-200 bg-white rounded-xl text-base font-medium hover:border-blue-400 hover:shadow-md"
+                      />
+                      <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
+                        <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
+                          <i className="fas fa-clock text-indigo-600 text-sm"></i>
+                        </div>
+                      </div>
+                      <div className="absolute left-14 top-2 text-xs text-gray-500 uppercase tracking-wide">
+                        Time
+                      </div>
+                    </div>
                   </div>
 
                   <div>
@@ -322,7 +370,7 @@ export default function RemindersPage() {
                       Frequency
                     </label>
                     <select
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 transition-colors bg-white h-12"
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 transition-all duration-300 bg-white h-12 hover:border-blue-400 hover:shadow-md cursor-pointer"
                       value={newReminder.frequency}
                       onChange={(e) => setNewReminder({ ...newReminder, frequency: e.target.value as any })}
                       data-testid="select-reminder-frequency"
@@ -344,7 +392,7 @@ export default function RemindersPage() {
                       onChange={(e) => setNewReminder({ ...newReminder, description: e.target.value })}
                       rows={3}
                       data-testid="textarea-reminder-description"
-                      className="border-2 border-gray-200 focus:border-blue-500 transition-colors resize-none"
+                      className="border-2 border-gray-200 focus:border-blue-500 transition-all duration-300 resize-none hover:border-blue-400 hover:shadow-md"
                     />
                   </div>
 
@@ -420,43 +468,87 @@ export default function RemindersPage() {
 
           {/* Calendar View */}
           <div className="xl:col-span-2">
-            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-              <CardHeader className="bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-t-lg">
-                <CardTitle className="flex items-center space-x-3 text-xl">
-                  <CalendarIcon className="h-6 w-6" />
-                  <span>Calendar View</span>
-                </CardTitle>
-                <CardDescription className="text-purple-100">
-                  Select a date to view and manage your reminders
-                </CardDescription>
+            <Card className="shadow-2xl border-0 bg-white rounded-3xl overflow-hidden">
+              <CardHeader className="bg-white border-b border-gray-100 p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+                      <CalendarIcon className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-2xl font-bold text-gray-900">
+                        {format(selectedCalendarDate, "MMMM yyyy")}
+                      </CardTitle>
+                      <CardDescription className="text-gray-600 text-base">
+                        Select a date to view reminders
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2 bg-blue-50 px-3 py-2 rounded-lg">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                      <span className="text-sm font-medium text-blue-700">Has Reminders</span>
+                    </div>
+                  </div>
+                </div>
               </CardHeader>
-              <CardContent className="p-6">
-                <Calendar
-                  mode="single"
-                  selected={selectedCalendarDate}
-                  onSelect={(date) => date && setSelectedCalendarDate(date)}
-                  className="rounded-xl border-2 border-gray-200 mx-auto shadow-sm"
-                  modifiers={{
-                    hasReminders: Array.from(getDaysWithReminders()).map(dateStr => new Date(dateStr))
-                  }}
-                  modifiersStyles={{
-                    hasReminders: {
-                      backgroundColor: '#6366f1',
-                      color: 'white',
-                      fontWeight: 'bold',
-                      borderRadius: '8px'
-                    }
-                  }}
-                  data-testid="calendar-view"
-                />
-                <div className="mt-6 text-center bg-gradient-to-r from-purple-50 to-blue-50 p-4 rounded-lg">
-                  <p className="text-lg font-semibold text-gray-800">
-                    Selected: <span className="text-purple-600">{format(selectedCalendarDate, "EEEE, MMMM d, yyyy")}</span>
-                  </p>
-                  <p className="text-sm text-gray-600 mt-2 flex items-center justify-center space-x-2">
-                    <i className="fas fa-info-circle text-purple-500"></i>
-                    <span>Purple dates have scheduled reminders</span>
-                  </p>
+              <CardContent className="p-0">
+                <div className="bg-white">
+                  <Calendar
+                    mode="single"
+                    selected={selectedCalendarDate}
+                    onSelect={(date) => date && setSelectedCalendarDate(date)}
+                    className="w-full"
+                    modifiers={{
+                      hasReminders: Array.from(getDaysWithReminders()).map(dateStr => new Date(dateStr))
+                    }}
+                    modifiersStyles={{
+                      hasReminders: {
+                        backgroundColor: '#3b82f6',
+                        color: 'white',
+                        fontWeight: '600',
+                        borderRadius: '12px',
+                        transform: 'scale(1.05)',
+                        boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
+                      }
+                    }}
+                    data-testid="calendar-view"
+                    classNames={{
+                      months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 w-full",
+                      month: "space-y-6 w-full",
+                      caption: "flex justify-center pt-4 pb-2 relative items-center",
+                      caption_label: "text-2xl font-bold text-gray-900",
+                      nav: "space-x-2 flex items-center",
+                      nav_button: "h-10 w-10 bg-gray-100 hover:bg-blue-100 p-0 rounded-xl transition-all duration-200 hover:scale-110",
+                      nav_button_previous: "absolute left-4",
+                      nav_button_next: "absolute right-4",
+                      table: "w-full border-collapse",
+                      head_row: "flex bg-gray-50 mx-4 rounded-xl mb-2",
+                      head_cell: "text-gray-600 rounded-lg w-full font-semibold text-sm py-3 text-center uppercase tracking-wide",
+                      row: "flex w-full px-4 mb-1",
+                      cell: "text-center text-base p-1 relative w-full [&:has([aria-selected])]:bg-blue-50 focus-within:relative focus-within:z-20",
+                      day: "h-12 w-full p-0 font-medium aria-selected:opacity-100 hover:bg-blue-50 rounded-xl transition-all duration-200 hover:scale-105 cursor-pointer flex items-center justify-center",
+                      day_range_end: "day-range-end",
+                      day_selected: "bg-blue-600 text-white hover:bg-blue-700 hover:text-white focus:bg-blue-600 focus:text-white font-bold shadow-lg scale-105",
+                      day_today: "bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-900 font-bold border-2 border-blue-300",
+                      day_outside: "text-gray-300 opacity-40",
+                      day_disabled: "text-gray-300 opacity-30 cursor-not-allowed hover:bg-transparent hover:scale-100",
+                      day_hidden: "invisible",
+                    }}
+                  />
+                </div>
+                <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 p-6 border-t border-gray-100">
+                  <div className="text-center">
+                    <div className="inline-flex items-center space-x-3 bg-white px-6 py-3 rounded-2xl shadow-sm border border-gray-200">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+                      <p className="text-lg font-semibold text-gray-800">
+                        <span className="text-blue-600">{format(selectedCalendarDate, "EEEE, MMMM d")}</span>
+                      </p>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-3">
+                      {getRemindersByDate(selectedCalendarDate).length} reminder{getRemindersByDate(selectedCalendarDate).length !== 1 ? 's' : ''} scheduled for this day
+                    </p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
