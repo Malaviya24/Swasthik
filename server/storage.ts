@@ -159,7 +159,7 @@ export class MemStorage implements IStorage {
 
   async getUserReminders(userId: string): Promise<Reminder[]> {
     return Array.from(this.reminders.values())
-      .filter(reminder => reminder.userId === userId && reminder.isActive)
+      .filter(reminder => reminder.userId === userId)
       .sort((a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime());
   }
 
