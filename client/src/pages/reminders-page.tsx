@@ -67,8 +67,16 @@ const reminderFormSchema = z.object({
   description: z.string().optional(),
   date: z.string().min(1, 'Date is required'),
   time: z.string().min(1, 'Time is required'),
+  period: z.enum(['AM', 'PM']),
 }).refine((data) => {
-  const scheduledDate = new Date(`${data.date}T${data.time}`);
+  // Convert 12-hour format to 24-hour format for validation
+  const [hours, minutes] = data.time.split(':');
+  let hour24 = parseInt(hours);
+  if (data.period === 'PM' && hour24 !== 12) hour24 += 12;
+  if (data.period === 'AM' && hour24 === 12) hour24 = 0;
+  
+  const timeString = `${hour24.toString().padStart(2, '0')}:${minutes}`;
+  const scheduledDate = new Date(`${data.date}T${timeString}`);
   return isAfter(scheduledDate, new Date());
 }, {
   message: 'Please select a future date and time',
@@ -93,7 +101,8 @@ export default function RemindersPage() {
       reminderType: 'medication',
       description: '',
       date: format(new Date(), 'yyyy-MM-dd'),
-      time: '',
+      time: '09:00',
+      period: 'AM',
     },
   });
 
@@ -184,9 +193,40 @@ export default function RemindersPage() {
     },
   });
 
+  // Convert 12-hour format to 24-hour format
+  const convertTo24Hour = (time: string, period: 'AM' | 'PM') => {
+    const [hours, minutes] = time.split(':');
+    let hour24 = parseInt(hours);
+    
+    if (period === 'PM' && hour24 !== 12) {
+      hour24 += 12;
+    } else if (period === 'AM' && hour24 === 12) {
+      hour24 = 0;
+    }
+    
+    return `${hour24.toString().padStart(2, '0')}:${minutes}`;
+  };
+
+  // Convert 24-hour format to 12-hour format
+  const convertTo12Hour = (time24: string) => {
+    const [hours, minutes] = time24.split(':');
+    const hour24 = parseInt(hours);
+    
+    if (hour24 === 0) {
+      return { time: `12:${minutes}`, period: 'AM' as const };
+    } else if (hour24 < 12) {
+      return { time: `${hour24}:${minutes}`, period: 'AM' as const };
+    } else if (hour24 === 12) {
+      return { time: `12:${minutes}`, period: 'PM' as const };
+    } else {
+      return { time: `${hour24 - 12}:${minutes}`, period: 'PM' as const };
+    }
+  };
+
   // Handle form submission
   const onSubmit = (data: ReminderFormData) => {
-    const scheduledAt = new Date(`${data.date}T${data.time}`);
+    const time24 = convertTo24Hour(data.time, data.period);
+    const scheduledAt = new Date(`${data.date}T${time24}`);
     
     const reminderData: InsertReminder = {
       title: data.title,
@@ -205,7 +245,8 @@ export default function RemindersPage() {
   const onEditSubmit = (data: ReminderFormData) => {
     if (!editingReminder) return;
     
-    const scheduledAt = new Date(`${data.date}T${data.time}`);
+    const time24 = convertTo24Hour(data.time, data.period);
+    const scheduledAt = new Date(`${data.date}T${time24}`);
     
     const reminderData: Partial<InsertReminder> = {
       title: data.title,
@@ -220,12 +261,16 @@ export default function RemindersPage() {
   // Handle edit button click
   const handleEdit = (reminder: Reminder) => {
     const reminderDate = new Date(reminder.scheduledAt);
+    const time24 = format(reminderDate, 'HH:mm');
+    const { time, period } = convertTo12Hour(time24);
+    
     editForm.reset({
       title: reminder.title,
       reminderType: reminder.reminderType as Category,
       description: reminder.description || '',
       date: format(reminderDate, 'yyyy-MM-dd'),
-      time: format(reminderDate, 'HH:mm'),
+      time: time,
+      period: period,
     });
     setEditingReminder(reminder);
     setIsEditDialogOpen(true);
@@ -272,8 +317,8 @@ export default function RemindersPage() {
   const selectedDateReminders = getRemindersByDate(selectedCalendarDate);
   const activeReminders = reminders.filter((r) => r.isActive);
 
-  // Check if a date has reminders
-  const hasReminders = (date: Date) => {
+  // Helper function to check if date has reminders
+  const dateHasReminders = (date: Date) => {
     return reminders.some(r => isSameDay(new Date(r.scheduledAt), date));
   };
 
@@ -328,25 +373,25 @@ export default function RemindersPage() {
           )}
         />
 
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="date"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Date</FormLabel>
-                <FormControl>
-                  <Input
-                    type="date"
-                    {...field}
-                    data-testid="input-reminder-date"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <FormField
+          control={form.control}
+          name="date"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Date</FormLabel>
+              <FormControl>
+                <Input
+                  type="date"
+                  {...field}
+                  data-testid="input-reminder-date"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
+        <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="time"
@@ -358,8 +403,31 @@ export default function RemindersPage() {
                     type="time"
                     {...field}
                     data-testid="input-reminder-time"
+                    className="w-full"
                   />
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="period"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>AM/PM</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger data-testid="select-time-period">
+                      <SelectValue placeholder="AM/PM" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="AM">AM</SelectItem>
+                    <SelectItem value="PM">PM</SelectItem>
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
@@ -519,26 +587,8 @@ export default function RemindersPage() {
                     day_disabled: "text-gray-400 opacity-50 cursor-not-allowed",
                     day_hidden: "invisible",
                   }}
-                  components={{
-                    Day: ({ date, ...props }) => {
-                      const hasReminderDot = hasReminders(date);
-                      const dominantCategory = getDominantCategory(date);
-                      const dotColor = dominantCategory ? CATEGORY_META[dominantCategory].dotColor : 'bg-gray-500';
-                      
-                      // Filter out non-button props
-                      const { displayMonth, ...buttonProps } = props;
-                      
-                      return (
-                        <div className="relative w-full h-full flex items-center justify-center">
-                          <button {...buttonProps} />
-                          {hasReminderDot && (
-                            <div className={`absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 ${dotColor} rounded-full`} />
-                          )}
-                        </div>
-                      );
-                    }
-                  }}
                 />
+                
               </CardContent>
             </Card>
 
