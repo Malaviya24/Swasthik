@@ -15,12 +15,12 @@ import { apiRequest } from '@/lib/queryClient';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Heart, Pill, Stethoscope, Activity, Plus, Edit2, Trash2, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
-import { format, addMonths, subMonths, isAfter, isSameDay } from 'date-fns';
+import { format, addMonths, subMonths, isAfter, isSameDay, isValid } from 'date-fns';
 import { z } from 'zod';
 import { type Reminder, insertReminderSchema, type InsertReminder } from '@shared/schema';
 
 // Category configuration
-type Category = 'medication' | 'appointment' | 'checkup' | 'exercise' | 'other';
+type Category = 'medication' | 'appointment' | 'checkup' | 'exercise' | 'vaccination' | 'other';
 
 const CATEGORY_META: Record<Category, { label: string; icon: typeof Pill; bgColor: string; textColor: string; dotColor: string }> = {
   medication: {
@@ -51,6 +51,13 @@ const CATEGORY_META: Record<Category, { label: string; icon: typeof Pill; bgColo
     textColor: 'text-orange-700',
     dotColor: 'bg-orange-500',
   },
+  vaccination: {
+    label: 'Vaccination',
+    icon: Stethoscope,
+    bgColor: 'bg-purple-50 hover:bg-purple-100',
+    textColor: 'text-purple-700',
+    dotColor: 'bg-purple-500',
+  },
   other: {
     label: 'Other',
     icon: CalendarIcon,
@@ -60,23 +67,56 @@ const CATEGORY_META: Record<Category, { label: string; icon: typeof Pill; bgColo
   },
 };
 
+// Helper function to safely get category metadata with fallback
+const getCategoryMeta = (category: string) => {
+  const meta = CATEGORY_META[category as Category];
+  if (meta) {
+    return meta;
+  }
+  // Fallback for unknown categories
+  return {
+    label: 'Other',
+    icon: CalendarIcon,
+    bgColor: 'bg-gray-50 hover:bg-gray-100',
+    textColor: 'text-gray-700',
+    dotColor: 'bg-gray-500',
+  };
+};
+
 // Form validation schema (separate from insert schema)
 const reminderFormSchema = z.object({
   title: z.string().min(1, 'Title is required'),
-  reminderType: z.enum(['medication', 'appointment', 'checkup', 'exercise', 'other']),
+  reminderType: z.enum(['medication', 'appointment', 'checkup', 'exercise', 'vaccination', 'other']),
   description: z.string().optional(),
   date: z.string().min(1, 'Date is required'),
   time: z.string().min(1, 'Time is required'),
   period: z.enum(['AM', 'PM']),
 }).refine((data) => {
+  // Validate time format first
+  if (!data.time || !/^\d{1,2}:\d{2}$/.test(data.time)) {
+    return false;
+  }
+  
   // Convert 12-hour format to 24-hour format for validation
   const [hours, minutes] = data.time.split(':');
-  let hour24 = parseInt(hours);
+  const hourNum = parseInt(hours);
+  const minuteNum = parseInt(minutes);
+  
+  if (isNaN(hourNum) || isNaN(minuteNum) || hourNum < 1 || hourNum > 12 || minuteNum < 0 || minuteNum > 59) {
+    return false;
+  }
+  
+  let hour24 = hourNum;
   if (data.period === 'PM' && hour24 !== 12) hour24 += 12;
   if (data.period === 'AM' && hour24 === 12) hour24 = 0;
   
   const timeString = `${hour24.toString().padStart(2, '0')}:${minutes}`;
   const scheduledDate = new Date(`${data.date}T${timeString}`);
+  
+  if (!isValid(scheduledDate)) {
+    return false;
+  }
+  
   return isAfter(scheduledDate, new Date());
 }, {
   message: 'Please select a future date and time',
@@ -135,7 +175,8 @@ export default function RemindersPage() {
         reminderType: 'medication',
         description: '',
         date: format(new Date(), 'yyyy-MM-dd'),
-        time: '',
+        time: '09:00',
+        period: 'AM',
       });
       queryClient.invalidateQueries({ queryKey: ['/api/reminders'] });
     },
@@ -261,14 +302,24 @@ export default function RemindersPage() {
   // Handle edit button click
   const handleEdit = (reminder: Reminder) => {
     const reminderDate = new Date(reminder.scheduledAt);
-    const time24 = format(reminderDate, 'HH:mm');
-    const { time, period } = convertTo12Hour(time24);
+    
+    let time = '09:00';
+    let period: 'AM' | 'PM' = 'AM';
+    let dateStr = format(new Date(), 'yyyy-MM-dd');
+    
+    if (isValid(reminderDate)) {
+      const time24 = format(reminderDate, 'HH:mm');
+      const converted = convertTo12Hour(time24);
+      time = converted.time;
+      period = converted.period;
+      dateStr = format(reminderDate, 'yyyy-MM-dd');
+    }
     
     editForm.reset({
       title: reminder.title,
       reminderType: reminder.reminderType as Category,
       description: reminder.description || '',
-      date: format(reminderDate, 'yyyy-MM-dd'),
+      date: dateStr,
       time: time,
       period: period,
     });
@@ -287,7 +338,7 @@ export default function RemindersPage() {
   const getRemindersByDate = (date: Date) => {
     return reminders.filter((reminder) => {
       const reminderDate = new Date(reminder.scheduledAt);
-      return isSameDay(reminderDate, date);
+      return isValid(reminderDate) && isSameDay(reminderDate, date);
     });
   };
 
@@ -319,7 +370,10 @@ export default function RemindersPage() {
 
   // Helper function to check if date has reminders
   const dateHasReminders = (date: Date) => {
-    return reminders.some(r => isSameDay(new Date(r.scheduledAt), date));
+    return reminders.some(r => {
+      const reminderDate = new Date(r.scheduledAt);
+      return isValid(reminderDate) && isSameDay(reminderDate, date);
+    });
   };
 
   const ReminderForm = ({ form, onSubmit, isLoading, submitLabel }: {
@@ -629,7 +683,7 @@ export default function RemindersPage() {
                   <div className="space-y-3">
                     {selectedDateReminders.map((reminder) => {
                       const category = reminder.reminderType as Category;
-                      const meta = CATEGORY_META[category];
+                      const meta = getCategoryMeta(category);
                       const IconComponent = meta.icon;
 
                       return (
@@ -652,7 +706,10 @@ export default function RemindersPage() {
                                     {meta.label}
                                   </Badge>
                                   <span className="text-sm text-gray-600" data-testid={`text-reminder-time-${reminder.id}`}>
-                                    {format(new Date(reminder.scheduledAt), 'h:mm a')}
+                                    {(() => {
+                                      const date = new Date(reminder.scheduledAt);
+                                      return isValid(date) ? format(date, 'h:mm a') : 'Invalid time';
+                                    })()}
                                   </span>
                                 </div>
                                 {reminder.description && (
@@ -696,7 +753,7 @@ export default function RemindersPage() {
                     <div className="space-y-2">
                       {reminders.slice(0, 5).map((reminder) => {
                         const category = reminder.reminderType as Category;
-                        const meta = CATEGORY_META[category];
+                        const meta = getCategoryMeta(category);
 
                         return (
                           <div
@@ -710,7 +767,10 @@ export default function RemindersPage() {
                               <div>
                                 <p className="font-medium text-gray-900 text-sm">{reminder.title}</p>
                                 <p className="text-xs text-gray-600">
-                                  {format(new Date(reminder.scheduledAt), 'MMM d, h:mm a')}
+                                  {(() => {
+                                    const date = new Date(reminder.scheduledAt);
+                                    return isValid(date) ? format(date, 'MMM d, h:mm a') : 'Invalid date';
+                                  })()}
                                 </p>
                               </div>
                             </div>
