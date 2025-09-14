@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
+import { useLanguage, LANGUAGES } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -22,7 +23,7 @@ const languages = [
 
 export function Sidebar({ isOpen, onClose, activeTab, onTabChange, onShowSymptomChecker }: SidebarProps) {
   const { user, signOut } = useAuth();
-  const [selectedLanguage, setSelectedLanguage] = useState('en');
+  const { currentLanguage, setLanguage, translate } = useLanguage();
 
   const menuItems = [
     { id: 'chat', icon: 'fas fa-comments', label: 'Chat', onClick: () => onTabChange('chat') },
@@ -46,8 +47,8 @@ export function Sidebar({ isOpen, onClose, activeTab, onTabChange, onShowSymptom
       <div className="p-6 border-b border-border">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-foreground">Swasthik</h1>
-            <p className="text-sm text-muted-foreground">AI Healthcare Assistant</p>
+            <h1 className="text-xl font-bold text-foreground">{translate('app.title')}</h1>
+            <p className="text-sm text-muted-foreground">{translate('app.subtitle')}</p>
           </div>
           <button 
             onClick={onClose}
@@ -106,7 +107,7 @@ export function Sidebar({ isOpen, onClose, activeTab, onTabChange, onShowSymptom
       {/* Language Selector */}
       <div className="p-4 border-t border-border">
         <label className="block text-sm font-medium mb-2">Language</label>
-        <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+        <Select value={currentLanguage} onValueChange={setLanguage}>
           <SelectTrigger className="w-full" data-testid="select-language">
             <SelectValue placeholder="Select language" />
           </SelectTrigger>
@@ -128,7 +129,7 @@ export function Sidebar({ isOpen, onClose, activeTab, onTabChange, onShowSymptom
           data-testid="button-emergency"
         >
           <i className="fas fa-phone-alt mr-2"></i>
-          Emergency: 108
+{translate('sidebar.emergency')}
         </Button>
       </div>
     </div>

@@ -1,17 +1,24 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { translations, TranslationKey, LanguageCode as TranslationLanguageCode } from '@/utils/translations';
 
+export type LanguageCode = TranslationLanguageCode;
+
+export interface Language {
+  code: LanguageCode;
+  name: string;
+  flag: string;
+}
+
 // Supported languages
-export const LANGUAGES = [
+export const LANGUAGES: Language[] = [
   { code: 'en', name: 'English', flag: '🇬🇧' },
   { code: 'hi', name: 'हिंदी', flag: '🇮🇳' },
   { code: 'bn', name: 'বাংলা', flag: '🇧🇩' },
-  { code: 'ta', name: 'தமிழ்', flag: '🇮🇳' },
+  { code: 'ta', name: 'தমிழ்', flag: '🇮🇳' },
   { code: 'te', name: 'తెలుగు', flag: '🇮🇳' },
-  { code: 'mr', name: 'मराठी', flag: '🇮🇳' }
-];
-
-export type LanguageCode = TranslationLanguageCode;
+  { code: 'mr', name: 'मराठी', flag: '🇮🇳' },
+  { code: 'or', name: 'ଓଡ଼ିଆ', flag: '🇮🇳' }
+] as const;
 
 interface LanguageContextType {
   currentLanguage: LanguageCode;

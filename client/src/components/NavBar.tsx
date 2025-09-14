@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
+import { useLanguage, LANGUAGES } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { 
   DropdownMenu, 
@@ -15,23 +16,17 @@ interface NavBarProps {
 
 export function NavBar({ onShowSymptomChecker }: NavBarProps) {
   const [location] = useLocation();
+  const { currentLanguage, setLanguage, translate } = useLanguage();
 
   const navItems = [
-    { href: '/symptom-checker', label: 'Symptom Checker', icon: 'fas fa-stethoscope' },
-    { href: '/medications', label: 'Medications', icon: 'fas fa-pills' },
-    { href: '/health-centers', label: 'Find Centers', icon: 'fas fa-map-marker-alt' },
-    { href: '/reminders', label: 'Reminders', icon: 'fas fa-calendar-check' },
-    { href: '/health-news', label: 'Health News', icon: 'fas fa-newspaper' }
+    { href: '/symptom-checker', label: translate('nav.symptom_checker'), icon: 'fas fa-stethoscope' },
+    { href: '/medications', label: translate('nav.medications'), icon: 'fas fa-pills' },
+    { href: '/health-centers', label: translate('nav.find_centers'), icon: 'fas fa-map-marker-alt' },
+    { href: '/reminders', label: translate('nav.reminders'), icon: 'fas fa-calendar-check' },
+    { href: '/health-news', label: translate('nav.health_news'), icon: 'fas fa-newspaper' }
   ];
 
-  const languages = [
-    { code: 'en', name: 'English', flag: '🇬🇧' },
-    { code: 'hi', name: 'हिंदी', flag: '🇮🇳' },
-    { code: 'bn', name: 'বাংলা', flag: '🇧🇩' },
-    { code: 'ta', name: 'தமிழ்', flag: '🇮🇳' },
-    { code: 'te', name: 'తెలుగు', flag: '🇮🇳' },
-    { code: 'mr', name: 'मराठी', flag: '🇮🇳' }
-  ];
+  const languages = LANGUAGES;
 
   const isActive = (href: string) => {
     if (href === '/' && location === '/') return true;
@@ -49,8 +44,8 @@ export function NavBar({ onShowSymptomChecker }: NavBarProps) {
               <i className="fas fa-robot text-white text-lg lg:text-xl"></i>
             </div>
             <div className="hidden sm:block">
-              <h1 className="text-lg lg:text-xl xl:text-2xl font-bold text-gray-900 leading-tight">Swasthik</h1>
-              <p className="text-xs lg:text-sm text-gray-500 leading-tight">AI Healthcare Assistant</p>
+              <h1 className="text-lg lg:text-xl xl:text-2xl font-bold text-gray-900 leading-tight">{translate('app.title')}</h1>
+              <p className="text-xs lg:text-sm text-gray-500 leading-tight">{translate('app.subtitle')}</p>
             </div>
           </Link>
 
@@ -62,12 +57,17 @@ export function NavBar({ onShowSymptomChecker }: NavBarProps) {
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="px-3" data-testid="button-language">
                   <i className="fas fa-globe mr-2"></i>
-                  <span className="hidden sm:inline">Language</span>
+                  <span className="hidden sm:inline">{translate('nav.language')}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 {languages.map((lang) => (
-                  <DropdownMenuItem key={lang.code} data-testid={`lang-option-${lang.code}`}>
+                  <DropdownMenuItem 
+                    key={lang.code} 
+                    data-testid={`lang-option-${lang.code}`}
+                    onClick={() => setLanguage(lang.code)}
+                    className={currentLanguage === lang.code ? 'bg-blue-50' : ''}
+                  >
                     <span className="mr-2">{lang.flag}</span>
                     {lang.name}
                   </DropdownMenuItem>
@@ -80,7 +80,7 @@ export function NavBar({ onShowSymptomChecker }: NavBarProps) {
               <DropdownMenuTrigger asChild>
                 <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700 px-3" data-testid="button-features-menu">
                   <i className="fas fa-bars mr-2"></i>
-                  <span className="hidden sm:inline">Features</span>
+                  <span className="hidden sm:inline">{translate('nav.features')}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
@@ -99,7 +99,7 @@ export function NavBar({ onShowSymptomChecker }: NavBarProps) {
                   data-testid="menu-emergency"
                 >
                   <i className="fas fa-phone-alt w-4"></i>
-                  <span className="font-medium">Emergency: 108</span>
+                  <span className="font-medium">{translate('nav.emergency')}</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

@@ -405,6 +405,74 @@ export const translations = {
     'features.multilingual_desc': 'अनेक भारतीय भाषांमध्ये उपलब्ध',
     'features.ai_powered': 'AI-चालित',
     'features.ai_powered_desc': 'अचूक आरोग्य मार्गदर्शनासाठी प्रगत AI'
+  },
+  
+  or: {
+    // Navigation
+    'nav.features': 'ବିଶେଷତା',
+    'nav.language': 'ଭାଷା',
+    'nav.emergency': 'ଜରୁରୀକାଳୀନ: ୧୦୮',
+    'nav.symptom_checker': 'ଲକ୍ଷଣ ଯାଞ୍ଚ',
+    'nav.medications': 'ଔଷଧ',
+    'nav.find_centers': 'କେନ୍ଦ୍ର ଖୋଜନ୍ତୁ',
+    'nav.reminders': 'ସ୍ମାରକ',
+    'nav.health_news': 'ସ୍ୱାସ୍ଥ୍ୟ ସମାଚାର',
+    
+    // App title and description
+    'app.title': 'ସ୍ୱାସ୍ତିକ',
+    'app.subtitle': 'AI ସ୍ୱାସ୍ଥ୍ୟ ସହାୟକ',
+    
+    // Sidebar
+    'sidebar.chat': 'ଚାଟ',
+    'sidebar.symptom_checker': 'ଲକ୍ଷଣ ଯାଞ୍ଚ',
+    'sidebar.medications': 'ଔଷଧ',
+    'sidebar.find_centers': 'କେନ୍ଦ୍ର ଖୋଜନ୍ତୁ',
+    'sidebar.reminders': 'ସ୍ମାରକ',
+    'sidebar.health_news': 'ସ୍ୱାସ୍ଥ୍ୟ ସମାଚାର',
+    'sidebar.language': 'ଭାଷା',
+    'sidebar.select_language': 'ଭାଷା ଚୟନ କରନ୍ତୁ',
+    'sidebar.emergency': 'ଜରୁରୀକାଳୀନ: ୧୦୮',
+    
+    // Common
+    'common.loading': 'ଲୋଡ଼ ହେଉଛି...',
+    'common.error': 'ତ୍ରୁଟି',
+    'common.try_again': 'ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ',
+    'common.submit': 'ଦାଖଲ କରନ୍ତୁ',
+    'common.cancel': 'ବାତିଲ କରନ୍ତୁ',
+    'common.save': 'ସେଭ କରନ୍ତୁ',
+    'common.delete': 'ଡିଲିଟ କରନ୍ତୁ',
+    'common.edit': 'ସମ୍ପାଦନା',
+    'common.search': 'ଖୋଜନ୍ତୁ',
+    'common.close': 'ବନ୍ଦ କରନ୍ତୁ',
+    
+    // Chat interface
+    'chat.title': 'AI ସ୍ୱାସ୍ଥ୍ୟ ସହାୟକ',
+    'chat.subtitle': 'ତୁରନ୍ତ ଚିକିତ୍ସା ପରାମର୍ଶ ଏବଂ ସ୍ୱାସ୍ଥ୍ୟ ମାର୍ଗଦର୍ଶନ ପାଆନ୍ତୁ',
+    'chat.input_placeholder': 'ଆପଣଙ୍କ ସ୍ୱାସ୍ଥ୍ୟ ସମସ୍ୟା ବିଷୟରେ ପଚାରନ୍ତୁ...',
+    'chat.send': 'ପଠାନ୍ତୁ',
+    'chat.thinking': 'AI ଚିନ୍ତା କରୁଛି...',
+    'chat.error_message': 'ଦୁଃଖିତ, ମୁଁ ଏକ ତ୍ରୁଟିର ସମ୍ମୁଖୀନ ହୋଇଛି। ଦୟାକରି ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।',
+    'chat.welcome_message': 'ନମସ୍କାର! ମୁଁ ଆପଣଙ୍କର AI ସ୍ୱାସ୍ଥ୍ୟ ସହାୟକ। ଆଜି ମୁଁ ଆପଣଙ୍କୁ କିପରି ସାହାଯ୍ୟ କରିପାରିବି?',
+    
+    // Landing page
+    'landing.hero_title': 'ଆପଣଙ୍କର ବ୍ୟକ୍ତିଗତ AI ସ୍ୱାସ୍ଥ୍ୟସେବା ସହାୟକ',
+    'landing.hero_subtitle': 'ଉନ୍ନତ AI ପ୍ରଯୁକ୍ତିବିଦ୍ୟା ଦ୍ୱାରା ଚାଳିତ ତୁରନ୍ତ ଚିକିତ୍ସା ପରାମର୍ଶ, ଲକ୍ଷଣ ଯାଞ୍ଚ ଏବଂ ସ୍ୱାସ୍ଥ୍ୟ ମାର୍ଗଦର୍ଶନ ପାଆନ୍ତୁ',
+    'landing.get_started': 'ଆରମ୍ଭ କରନ୍ତୁ',
+    'landing.learn_more': 'ଅଧିକ ଜାଣନ୍ତୁ',
+    
+    // Features
+    'features.instant_diagnosis': 'ତୁରନ୍ତ ନିଦାନ',
+    'features.instant_diagnosis_desc': 'ଆପଣଙ୍କ ଲକ୍ଷଣ ଆଧାରରେ ଦ୍ରୁତ ସ୍ୱାସ୍ଥ୍ୟ ମୂଲ୍ୟାଙ୍କନ ପାଆନ୍ତୁ',
+    'features.medication_info': 'ଔଷଧ ସୂଚନା',
+    'features.medication_info_desc': 'ଔଷଧ, ଡୋଜ ଏବଂ ପାରସ୍ପରିକ କ୍ରିୟା ବିଷୟରେ ଜାଣନ୍ତୁ',
+    'features.health_centers': 'ସ୍ୱାସ୍ଥ୍ୟ କେନ୍ଦ୍ର ଖୋଜନ୍ତୁ',
+    'features.health_centers_desc': 'ନିକଟସ୍ଥ ହସ୍ପିଟାଲ ଏବଂ କ୍ଲିନିକ୍ ଖୋଜନ୍ତୁ',
+    'features.health_reminders': 'ସ୍ୱାସ୍ଥ୍ୟ ସ୍ମାରକ',
+    'features.health_reminders_desc': 'ଔଷଧ ଏବଂ ଅପଏଣ୍ଟମେଣ୍ଟ ପାଇଁ ସ୍ମାରକ ସେଟ କରନ୍ତୁ',
+    'features.multilingual': 'ବହୁଭାଷୀ ସମର୍ଥନ',
+    'features.multilingual_desc': 'ଅନେକ ଭାରତୀୟ ଭାଷାରେ ଉପଲବ୍ଧ',
+    'features.ai_powered': 'AI-ଚାଳିତ',
+    'features.ai_powered_desc': 'ସଠିକ ସ୍ୱାସ୍ଥ୍ୟ ମାର୍ଗଦର୍ଶନ ପାଇଁ ଉନ୍ନତ AI'
   }
 };
 
