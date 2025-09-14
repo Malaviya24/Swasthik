@@ -3,10 +3,9 @@ import { analyzeSymptoms, HealthAnalysis } from '@/lib/gemini';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { CheckCircle, Circle, ArrowLeft, ArrowRight, X, ClipboardList, AlertTriangle, Check, ChartLine, ListCheck, Info } from 'lucide-react';
 
 interface SymptomCheckerProps {
   open: boolean;
@@ -84,16 +83,29 @@ export function SymptomChecker({ open, onOpenChange, onResultReady }: SymptomChe
   const handleMultipleChoice = (questionId: string, option: string) => {
     const currentAnswers = answers[questionId] || [];
     const isSelected = currentAnswers.includes(option);
+    const isExclusiveOption = option === 'None' || option === 'No pain';
     
     if (isSelected) {
+      // Remove the selected option
       setAnswers(prev => ({
         ...prev,
         [questionId]: currentAnswers.filter((a: string) => a !== option)
       }));
     } else {
+      // Add the option
+      let newAnswers;
+      if (isExclusiveOption) {
+        // If selecting None/No pain, clear all other options
+        newAnswers = [option];
+      } else {
+        // If selecting a regular option, remove None/No pain if they exist
+        const filteredAnswers = currentAnswers.filter((a: string) => a !== 'None' && a !== 'No pain');
+        newAnswers = [...filteredAnswers, option];
+      }
+      
       setAnswers(prev => ({
         ...prev,
-        [questionId]: [...currentAnswers, option]
+        [questionId]: newAnswers
       }));
     }
   };
@@ -113,15 +125,21 @@ export function SymptomChecker({ open, onOpenChange, onResultReady }: SymptomChe
   const compileSymptoms = () => {
     const symptoms = [];
     
+    // Mapping for yes/no questions to symptom descriptions
+    const yesNoSymptomMap: Record<string, string> = {
+      'fever': 'fever or elevated body temperature'
+    };
+    
     // Process each answer
     Object.entries(answers).forEach(([questionId, answer]) => {
       const question = symptomQuestions.find(q => q.id === questionId);
       if (!question || !answer) return;
 
       if (question.type === 'yes_no' && answer === 'yes') {
-        symptoms.push(question.question.replace('Are you experiencing ', '').replace('?', ''));
+        const symptomDescription = yesNoSymptomMap[questionId] || questionId;
+        symptoms.push(symptomDescription);
       } else if (question.type === 'multiple_choice' && Array.isArray(answer)) {
-        answer.forEach(a => {
+        answer.forEach((a: string) => {
           if (a !== 'None' && a !== 'No pain') {
             symptoms.push(a.toLowerCase());
           }
@@ -205,16 +223,20 @@ export function SymptomChecker({ open, onOpenChange, onResultReady }: SymptomChe
                 variant={answers[currentQuestion.id] === 'yes' ? 'default' : 'outline'}
                 onClick={() => handleAnswer(currentQuestion.id, 'yes')}
                 className="h-12"
+                data-testid={`yes-${currentQuestion.id}`}
+                aria-pressed={answers[currentQuestion.id] === 'yes'}
               >
-                <i className="fas fa-check mr-2"></i>
+                <Check className="w-4 h-4 mr-2" />
                 Yes
               </Button>
               <Button
                 variant={answers[currentQuestion.id] === 'no' ? 'default' : 'outline'}
                 onClick={() => handleAnswer(currentQuestion.id, 'no')}
                 className="h-12"
+                data-testid={`no-${currentQuestion.id}`}
+                aria-pressed={answers[currentQuestion.id] === 'no'}
               >
-                <i className="fas fa-times mr-2"></i>
+                <X className="w-4 h-4 mr-2" />
                 No
               </Button>
             </div>
@@ -231,15 +253,21 @@ export function SymptomChecker({ open, onOpenChange, onResultReady }: SymptomChe
                 variant={selectedOptions.includes(option) ? 'default' : 'outline'}
                 onClick={() => handleMultipleChoice(currentQuestion.id, option)}
                 className="w-full justify-start h-auto py-3 px-4"
+                data-testid={`option-${currentQuestion.id}-${index}`}
+                aria-pressed={selectedOptions.includes(option)}
               >
                 <div className="flex items-center space-x-3">
-                  <i className={`fas fa-${selectedOptions.includes(option) ? 'check-' : ''}circle`}></i>
+                  {selectedOptions.includes(option) ? (
+                    <CheckCircle className="w-4 h-4" />
+                  ) : (
+                    <Circle className="w-4 h-4" />
+                  )}
                   <span>{option}</span>
                 </div>
               </Button>
             ))}
             <p className="text-xs text-gray-500 mt-2">
-              <i className="fas fa-info-circle mr-1"></i>
+              <Info className="w-3 h-3 mr-1 inline" />
               You can select multiple options
             </p>
           </div>
@@ -260,6 +288,7 @@ export function SymptomChecker({ open, onOpenChange, onResultReady }: SymptomChe
               }}
               rows={4}
               className="resize-none"
+              data-testid={`input-${currentQuestion.id}`}
             />
           </div>
         );
@@ -273,8 +302,8 @@ export function SymptomChecker({ open, onOpenChange, onResultReady }: SymptomChe
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" data-testid="modal-symptom-checker">
         <DialogHeader>
-          <DialogTitle className="flex items-center space-x-2">
-            <i className="fas fa-clipboard-list text-blue-600"></i>
+          <DialogTitle className="flex items-center space-x-2" data-testid="symptom-checker-title">
+            <ClipboardList className="w-5 h-5 text-blue-600" />
             <span>AI Symptom Checker</span>
           </DialogTitle>
         </DialogHeader>
@@ -282,7 +311,7 @@ export function SymptomChecker({ open, onOpenChange, onResultReady }: SymptomChe
         <div className="space-y-6">
           {/* Progress Bar */}
           <div className="space-y-2">
-            <div className="flex justify-between text-sm text-gray-600">
+            <div className="flex justify-between text-sm text-gray-600" data-testid="progress-info">
               <span>Question {currentStep + 1} of {symptomQuestions.length}</span>
               <span>{Math.round(((currentStep + 1) / symptomQuestions.length) * 100)}% Complete</span>
             </div>
@@ -295,9 +324,9 @@ export function SymptomChecker({ open, onOpenChange, onResultReady }: SymptomChe
           </div>
 
           {/* Medical Disclaimer */}
-          <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+          <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg" data-testid="medical-disclaimer">
             <p className="text-sm text-amber-800">
-              <i className="fas fa-exclamation-triangle mr-2"></i>
+              <AlertTriangle className="w-4 h-4 mr-2 inline" />
               This tool provides general information only. Always consult a healthcare professional for medical advice.
             </p>
           </div>
@@ -319,7 +348,7 @@ export function SymptomChecker({ open, onOpenChange, onResultReady }: SymptomChe
             <Card className="bg-blue-50 border-blue-200">
               <CardContent className="pt-4">
                 <h4 className="font-medium text-blue-900 mb-3">
-                  <i className="fas fa-list-check mr-2"></i>
+                  <ListCheck className="w-4 h-4 mr-2 inline" />
                   Summary of Your Responses
                 </h4>
                 <div className="space-y-2 text-sm">
@@ -329,7 +358,7 @@ export function SymptomChecker({ open, onOpenChange, onResultReady }: SymptomChe
                     
                     return (
                       <div key={questionId} className="flex items-start space-x-2">
-                        <i className="fas fa-check-circle text-blue-600 mt-0.5"></i>
+                        <CheckCircle className="w-4 h-4 text-blue-600 mt-0.5" />
                         <div>
                           <span className="font-medium">{question.question.split('?')[0]}:</span>
                           <span className="ml-2 text-blue-800">
@@ -341,7 +370,7 @@ export function SymptomChecker({ open, onOpenChange, onResultReady }: SymptomChe
                   })}
                   {customSymptoms.trim() && (
                     <div className="flex items-start space-x-2">
-                      <i className="fas fa-check-circle text-blue-600 mt-0.5"></i>
+                      <CheckCircle className="w-4 h-4 text-blue-600 mt-0.5" />
                       <div>
                         <span className="font-medium">Additional symptoms:</span>
                         <span className="ml-2 text-blue-800">{customSymptoms}</span>
@@ -360,8 +389,9 @@ export function SymptomChecker({ open, onOpenChange, onResultReady }: SymptomChe
               onClick={handlePrevious}
               disabled={currentStep === 0 || isAnalyzing}
               className="flex-1"
+              data-testid="button-previous"
             >
-              <i className="fas fa-arrow-left mr-2"></i>
+              <ArrowLeft className="w-4 h-4 mr-2" />
               Previous
             </Button>
 
@@ -374,12 +404,12 @@ export function SymptomChecker({ open, onOpenChange, onResultReady }: SymptomChe
               >
                 {isAnalyzing ? (
                   <>
-                    <i className="fas fa-spinner fa-spin mr-2"></i>
+                    <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     Analyzing...
                   </>
                 ) : (
                   <>
-                    <i className="fas fa-chart-line mr-2"></i>
+                    <ChartLine className="w-4 h-4 mr-2" />
                     Get Analysis Report
                   </>
                 )}
@@ -389,9 +419,10 @@ export function SymptomChecker({ open, onOpenChange, onResultReady }: SymptomChe
                 onClick={handleNext}
                 disabled={!canProceed() || isAnalyzing}
                 className="flex-1"
+                data-testid="button-next"
               >
                 Next
-                <i className="fas fa-arrow-right ml-2"></i>
+                <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             )}
 
@@ -402,7 +433,7 @@ export function SymptomChecker({ open, onOpenChange, onResultReady }: SymptomChe
               data-testid="button-cancel-symptom-checker"
               className="px-4"
             >
-              <i className="fas fa-times"></i>
+              <X className="w-4 h-4" />
             </Button>
           </div>
         </div>
