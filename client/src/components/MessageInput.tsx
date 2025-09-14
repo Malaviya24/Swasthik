@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { VoiceRecorder } from './VoiceRecorder';
 import { analyzeImage } from '@/lib/gemini';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface MessageInputProps {
   onSendMessage: (message: string, type?: 'text' | 'image' | 'voice') => void;
@@ -13,6 +14,7 @@ export function MessageInput({ onSendMessage, disabled }: MessageInputProps) {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const handleSend = () => {
     if (message.trim() && !disabled) {
@@ -69,43 +71,43 @@ export function MessageInput({ onSendMessage, disabled }: MessageInputProps) {
   ];
 
   return (
-    <div className="p-6">
+    <div className={isMobile ? 'p-3' : 'p-6'}>
       {/* Enhanced Quick Actions */}
-      <div className="flex space-x-3 mb-4 overflow-x-auto pb-2">
+      <div className={`flex ${isMobile ? 'space-x-2 mb-3' : 'space-x-3 mb-4'} overflow-x-auto pb-2`}>
         {quickActions.map((action, index) => (
           <button
             key={index}
             onClick={action.action}
             disabled={disabled}
-            className={`flex items-center space-x-2 px-4 py-2.5 rounded-2xl text-sm font-medium whitespace-nowrap transition-all duration-200 hover:scale-105 disabled:opacity-50 ${action.color}`}
+            className={`flex items-center ${isMobile ? 'space-x-1 px-3 py-2' : 'space-x-2 px-4 py-2.5'} rounded-2xl ${isMobile ? 'text-xs' : 'text-sm'} font-medium whitespace-nowrap transition-all duration-200 hover:scale-105 disabled:opacity-50 ${action.color}`}
             data-testid={`button-quick-${action.label.toLowerCase().replace(' ', '-')}`}
           >
-            <i className={action.icon}></i>
-            <span>{action.label}</span>
+            <i className={`${action.icon} ${isMobile ? 'text-xs' : ''}`}></i>
+            <span>{isMobile && action.label.includes(' ') ? action.label.split(' ')[0] : action.label}</span>
           </button>
         ))}
       </div>
 
       {/* Enhanced Message Input Area */}
-      <div className="flex items-end space-x-4">
-        <div className="flex-1 bg-white border-2 border-gray-200 rounded-2xl p-4 shadow-sm focus-within:border-blue-300 focus-within:shadow-md transition-all duration-200">
-          <div className="flex items-center space-x-3">
+      <div className={`flex items-end ${isMobile ? 'space-x-2' : 'space-x-4'}`}>
+        <div className={`flex-1 bg-white border-2 border-gray-200 rounded-2xl ${isMobile ? 'p-3' : 'p-4'} shadow-sm focus-within:border-blue-300 focus-within:shadow-md transition-all duration-200`}>
+          <div className={`flex items-center ${isMobile ? 'space-x-2' : 'space-x-3'}`}>
             <input 
               type="text" 
-              placeholder="Ask about symptoms, medicines, or health concerns..." 
+              placeholder={isMobile ? "Ask about health concerns..." : "Ask about symptoms, medicines, or health concerns..."}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyPress={handleKeyPress}
               disabled={disabled || isUploading}
-              className="flex-1 bg-transparent outline-none text-sm placeholder-gray-500 disabled:opacity-50"
+              className={`flex-1 bg-transparent outline-none ${isMobile ? 'text-xs' : 'text-sm'} placeholder-gray-500 disabled:opacity-50`}
               data-testid="input-message"
             />
             
             {/* Enhanced Attachment Options */}
-            <div className="flex items-center space-x-2">
+            <div className={`flex items-center ${isMobile ? 'space-x-1' : 'space-x-2'}`}>
               {/* Image Upload */}
-              <label className={`cursor-pointer p-2 hover:bg-gray-100 rounded-xl transition-all duration-200 ${isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'}`}>
-                <i className="fas fa-camera text-gray-500 text-lg"></i>
+              <label className={`cursor-pointer ${isMobile ? 'p-1.5' : 'p-2'} hover:bg-gray-100 rounded-xl transition-all duration-200 ${isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'}`}>
+                <i className={`fas fa-camera text-gray-500 ${isMobile ? 'text-sm' : 'text-lg'}`}></i>
                 <input 
                   ref={fileInputRef}
                   type="file" 
@@ -118,7 +120,7 @@ export function MessageInput({ onSendMessage, disabled }: MessageInputProps) {
               </label>
               
               {/* Voice Recording */}
-              <div className="p-2 hover:bg-gray-100 rounded-xl transition-all duration-200 hover:scale-110">
+              <div className={`${isMobile ? 'p-1.5' : 'p-2'} hover:bg-gray-100 rounded-xl transition-all duration-200 hover:scale-110`}>
                 <VoiceRecorder onTranscript={handleVoiceTranscript} />
               </div>
             </div>
@@ -129,13 +131,13 @@ export function MessageInput({ onSendMessage, disabled }: MessageInputProps) {
         <button 
           onClick={handleSend}
           disabled={!message.trim() || disabled || isUploading}
-          className="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-4 rounded-2xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 shadow-lg hover:shadow-xl"
+          className={`bg-gradient-to-br from-blue-500 to-blue-600 text-white ${isMobile ? 'p-3' : 'p-4'} rounded-2xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 shadow-lg hover:shadow-xl`}
           data-testid="button-send-message"
         >
           {isUploading ? (
-            <i className="fas fa-spinner fa-spin text-lg"></i>
+            <i className={`fas fa-spinner fa-spin ${isMobile ? 'text-sm' : 'text-lg'}`}></i>
           ) : (
-            <i className="fas fa-paper-plane text-lg"></i>
+            <i className={`fas fa-paper-plane ${isMobile ? 'text-sm' : 'text-lg'}`}></i>
           )}
         </button>
       </div>

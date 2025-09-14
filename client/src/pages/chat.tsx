@@ -5,6 +5,7 @@ import { Sidebar } from '@/components/Sidebar';
 import { SymptomChecker } from '@/components/SymptomChecker';
 import { useChat } from '@/hooks/use-chat';
 import { useAuth } from '@/hooks/use-auth';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { HealthAnalysis } from '@/lib/gemini';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 export default function Chat() {
   const { user, loading, login, authError, isAuthAvailable } = useAuth();
   const { messages, isLoading, sendMessage, clearChat } = useChat();
+  const isMobile = useIsMobile();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('chat');
   const [showSymptomChecker, setShowSymptomChecker] = useState(false);
@@ -105,44 +107,44 @@ ${analysis.disclaimer}`;
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50" data-testid="page-chat">
       {/* Modern Chat Container */}
-      <div className="max-w-6xl mx-auto h-screen flex flex-col p-4">
+      <div className={`${isMobile ? 'max-w-full' : 'max-w-6xl'} mx-auto h-screen flex flex-col ${isMobile ? 'p-2' : 'p-4'}`}>
         {/* Enhanced Chat Header */}
         <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-green-600 rounded-t-2xl shadow-xl">
-          <div className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
+          <div className={`${isMobile ? 'p-4' : 'p-6'}`}>
+            <div className={`flex items-center ${isMobile ? 'flex-col space-y-3' : 'justify-between'}`}>
+              <div className={`flex items-center ${isMobile ? 'space-x-3' : 'space-x-4'}`}>
                 <div className="relative">
-                  <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
-                    <i className="fas fa-robot text-2xl text-white"></i>
+                  <div className={`${isMobile ? 'w-12 h-12' : 'w-14 h-14'} bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center`}>
+                    <i className={`fas fa-robot ${isMobile ? 'text-xl' : 'text-2xl'} text-white`}></i>
                   </div>
                   <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 rounded-full border-2 border-white animate-pulse"></div>
                 </div>
-                <div>
-                  <h1 className="text-xl font-bold text-white">Swasthik AI</h1>
-                  <p className="text-blue-100 text-sm flex items-center gap-2">
+                <div className={isMobile ? 'text-center' : ''}>
+                  <h1 className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-white`}>Swasthik AI</h1>
+                  <p className={`text-blue-100 ${isMobile ? 'text-xs' : 'text-sm'} flex items-center gap-2 ${isMobile ? 'justify-center' : ''}`}>
                     <span className="w-2 h-2 bg-green-400 rounded-full"></span>
                     Online • Ready to assist with your health
                   </p>
                 </div>
               </div>
               
-              <div className="flex items-center space-x-3">
+              <div className={`flex items-center ${isMobile ? 'space-x-2 flex-wrap justify-center' : 'space-x-3'}`}>
                 <Button 
                   onClick={() => setShowSymptomChecker(true)}
-                  className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border border-white/30 transition-all duration-200 hover:scale-105"
+                  className={`bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border border-white/30 transition-all duration-200 hover:scale-105 ${isMobile ? 'text-xs px-3 py-2' : ''}`}
                   data-testid="button-symptom-checker"
                 >
-                  <i className="fas fa-stethoscope mr-2"></i>
-                  Quick Check
+                  <i className={`fas fa-stethoscope ${isMobile ? 'mr-1' : 'mr-2'}`}></i>
+                  {isMobile ? 'Check' : 'Quick Check'}
                 </Button>
                 <Button 
                   onClick={clearChat}
                   variant="outline"
-                  className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white border-white/30 transition-all duration-200"
+                  className={`bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white border-white/30 transition-all duration-200 ${isMobile ? 'text-xs px-3 py-2' : ''}`}
                   data-testid="button-clear-chat"
                 >
-                  <i className="fas fa-refresh mr-2"></i>
-                  New Chat
+                  <i className={`fas fa-refresh ${isMobile ? 'mr-1' : 'mr-2'}`}></i>
+                  {isMobile ? 'New' : 'New Chat'}
                 </Button>
               </div>
             </div>

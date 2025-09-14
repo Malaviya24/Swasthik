@@ -5,6 +5,7 @@ import { TypingIndicator } from '@/components/ui/typing-indicator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/use-auth';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ChatInterfaceProps {
   messages: ChatMessage[];
@@ -16,6 +17,7 @@ export function ChatInterface({ messages, isLoading, onClearChat }: ChatInterfac
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   const { translate } = useLanguage();
+  const isMobile = useIsMobile();
   const [isHealthTipVisible, setIsHealthTipVisible] = useState(true);
 
   useEffect(() => {
@@ -53,18 +55,20 @@ export function ChatInterface({ messages, isLoading, onClearChat }: ChatInterfac
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.3 }}
-          className="bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-amber-400 p-4"
+          className={`bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-amber-400 ${isMobile ? 'p-3' : 'p-4'}`}
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center mr-3">
-                <i className="fas fa-bell text-amber-600"></i>
+          <div className={`flex items-center ${isMobile ? 'flex-col space-y-2' : 'justify-between'}`}>
+            <div className={`flex items-center ${isMobile ? 'text-center' : ''}`}>
+              <div className={`${isMobile ? 'w-6 h-6 mr-2' : 'w-8 h-8 mr-3'} bg-amber-100 rounded-full flex items-center justify-center`}>
+                <i className={`fas fa-bell text-amber-600 ${isMobile ? 'text-xs' : ''}`}></i>
               </div>
               <div>
-                <p className="text-amber-900 text-sm font-medium">
+                <p className={`text-amber-900 ${isMobile ? 'text-xs' : 'text-sm'} font-medium`}>
                   Health Tip: Stay hydrated and maintain a balanced diet for better immunity
                 </p>
-                <p className="text-amber-700 text-xs mt-1">Updated health guidelines available</p>
+                {!isMobile && (
+                  <p className="text-amber-700 text-xs mt-1">Updated health guidelines available</p>
+                )}
               </div>
             </div>
             <button 
@@ -80,30 +84,30 @@ export function ChatInterface({ messages, isLoading, onClearChat }: ChatInterfac
       )}
 
       {/* Enhanced Chat Messages Area */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6 min-h-0 chat-scroll">
+      <div className={`flex-1 overflow-y-auto ${isMobile ? 'p-3 space-y-4' : 'p-6 space-y-6'} min-h-0 chat-scroll`}>
         {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full text-center py-12">
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-green-100 rounded-3xl flex items-center justify-center mb-6">
-              <i className="fas fa-comments text-3xl text-blue-600"></i>
+          <div className={`flex flex-col items-center justify-center h-full text-center ${isMobile ? 'py-8' : 'py-12'}`}>
+            <div className={`${isMobile ? 'w-16 h-16 mb-4' : 'w-20 h-20 mb-6'} bg-gradient-to-br from-blue-100 to-green-100 rounded-3xl flex items-center justify-center`}>
+              <i className={`fas fa-comments ${isMobile ? 'text-2xl' : 'text-3xl'} text-blue-600`}></i>
             </div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">{translate('chat.title')}</h3>
-            <p className="text-gray-600 mb-6 max-w-md">{translate('chat.subtitle')}</p>
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="bg-blue-50 p-3 rounded-lg">
-                <i className="fas fa-stethoscope text-blue-600 mb-2"></i>
-                <p className="text-gray-700">{translate('nav.symptom_checker')}</p>
+            <h3 className={`${isMobile ? 'text-lg' : 'text-xl'} font-semibold text-gray-800 mb-2`}>{translate('chat.title')}</h3>
+            <p className={`text-gray-600 ${isMobile ? 'mb-4 px-4' : 'mb-6'} max-w-md`}>{translate('chat.subtitle')}</p>
+            <div className={`grid ${isMobile ? 'grid-cols-1 gap-2 max-w-xs' : 'grid-cols-2 gap-3'} text-sm`}>
+              <div className={`bg-blue-50 ${isMobile ? 'p-2 flex items-center space-x-2' : 'p-3'} rounded-lg`}>
+                <i className={`fas fa-stethoscope text-blue-600 ${isMobile ? 'text-sm' : 'mb-2'}`}></i>
+                <p className={`text-gray-700 ${isMobile ? 'text-xs' : ''}`}>{translate('nav.symptom_checker')}</p>
               </div>
-              <div className="bg-green-50 p-3 rounded-lg">
-                <i className="fas fa-pills text-green-600 mb-2"></i>
-                <p className="text-gray-700">{translate('nav.medications')}</p>
+              <div className={`bg-green-50 ${isMobile ? 'p-2 flex items-center space-x-2' : 'p-3'} rounded-lg`}>
+                <i className={`fas fa-pills text-green-600 ${isMobile ? 'text-sm' : 'mb-2'}`}></i>
+                <p className={`text-gray-700 ${isMobile ? 'text-xs' : ''}`}>{translate('nav.medications')}</p>
               </div>
-              <div className="bg-purple-50 p-3 rounded-lg">
-                <i className="fas fa-camera text-purple-600 mb-2"></i>
-                <p className="text-gray-700">Image Analysis</p>
+              <div className={`bg-purple-50 ${isMobile ? 'p-2 flex items-center space-x-2' : 'p-3'} rounded-lg`}>
+                <i className={`fas fa-camera text-purple-600 ${isMobile ? 'text-sm' : 'mb-2'}`}></i>
+                <p className={`text-gray-700 ${isMobile ? 'text-xs' : ''}`}>Image Analysis</p>
               </div>
-              <div className="bg-orange-50 p-3 rounded-lg">
-                <i className="fas fa-microphone text-orange-600 mb-2"></i>
-                <p className="text-gray-700">Voice Messages</p>
+              <div className={`bg-orange-50 ${isMobile ? 'p-2 flex items-center space-x-2' : 'p-3'} rounded-lg`}>
+                <i className={`fas fa-microphone text-orange-600 ${isMobile ? 'text-sm' : 'mb-2'}`}></i>
+                <p className={`text-gray-700 ${isMobile ? 'text-xs' : ''}`}>Voice Messages</p>
               </div>
             </div>
           </div>
@@ -117,26 +121,26 @@ export function ChatInterface({ messages, isLoading, onClearChat }: ChatInterfac
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -20, scale: 0.95 }}
               transition={{ duration: 0.4, ease: "easeOut" }}
-              className={`flex items-end space-x-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`flex items-end ${isMobile ? 'space-x-2' : 'space-x-3'} ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               data-testid={`message-${message.role}-${index}`}
             >
               {message.role === 'assistant' && (
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-green-500 rounded-2xl flex items-center justify-center text-white flex-shrink-0 shadow-lg">
-                  <i className="fas fa-robot text-sm"></i>
+                <div className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'} bg-gradient-to-br from-blue-500 to-green-500 rounded-2xl flex items-center justify-center text-white flex-shrink-0 shadow-lg`}>
+                  <i className={`fas fa-robot ${isMobile ? 'text-xs' : 'text-sm'}`}></i>
                 </div>
               )}
               
-              <div className={`group max-w-sm lg:max-w-lg xl:max-w-xl relative ${
+              <div className={`group ${isMobile ? 'max-w-[85%]' : 'max-w-sm lg:max-w-lg xl:max-w-xl'} relative ${
                 message.role === 'user' 
                   ? 'order-1' 
                   : 'order-2'
               }`}>
-                <div className={`p-4 rounded-3xl shadow-sm ${
+                <div className={`${isMobile ? 'p-3' : 'p-4'} rounded-3xl shadow-sm ${
                   message.role === 'user' 
                     ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-tr-lg' 
                     : 'bg-white border border-gray-100 text-gray-800 rounded-tl-lg'
                 }`}>
-                  <div className="text-sm leading-relaxed space-y-2">
+                  <div className={`${isMobile ? 'text-xs' : 'text-sm'} leading-relaxed space-y-2`}>
                     {formatMessage(message.content)}
                   </div>
                   
@@ -162,8 +166,8 @@ export function ChatInterface({ messages, isLoading, onClearChat }: ChatInterfac
               </div>
 
               {message.role === 'user' && (
-                <Avatar className="w-10 h-10 flex-shrink-0 order-2">
-                  <AvatarFallback className="bg-gradient-to-br from-gray-600 to-gray-700 text-white text-sm font-medium">
+                <Avatar className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'} flex-shrink-0 order-2`}>
+                  <AvatarFallback className={`bg-gradient-to-br from-gray-600 to-gray-700 text-white ${isMobile ? 'text-xs' : 'text-sm'} font-medium`}>
                     {getUserInitials()}
                   </AvatarFallback>
                 </Avatar>
@@ -177,12 +181,12 @@ export function ChatInterface({ messages, isLoading, onClearChat }: ChatInterfac
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex items-end space-x-3 justify-start"
+            className={`flex items-end ${isMobile ? 'space-x-2' : 'space-x-3'} justify-start`}
           >
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-green-500 rounded-2xl flex items-center justify-center text-white flex-shrink-0 shadow-lg">
-              <i className="fas fa-robot text-sm"></i>
+            <div className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'} bg-gradient-to-br from-blue-500 to-green-500 rounded-2xl flex items-center justify-center text-white flex-shrink-0 shadow-lg`}>
+              <i className={`fas fa-robot ${isMobile ? 'text-xs' : 'text-sm'}`}></i>
             </div>
-            <div className="bg-white border border-gray-100 p-4 rounded-3xl rounded-tl-lg shadow-sm">
+            <div className={`bg-white border border-gray-100 ${isMobile ? 'p-3' : 'p-4'} rounded-3xl rounded-tl-lg shadow-sm`}>
               <TypingIndicator />
             </div>
           </motion.div>
