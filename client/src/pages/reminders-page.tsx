@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, Clock, Plus, BarChart3, CheckCircle, Calendar as CalendarLucide, List, Pill, Users, Stethoscope, Activity, Bell, Trash2, Settings, CalendarPlus, PlusCircle, ChartLine, CalendarDays, Repeat, Play, Pause } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { type Reminder } from '@shared/schema';
@@ -152,11 +152,11 @@ export default function RemindersPage() {
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'medication': return 'fas fa-pills';
-      case 'appointment': return 'fas fa-calendar-check';
-      case 'checkup': return 'fas fa-stethoscope';
-      case 'exercise': return 'fas fa-running';
-      default: return 'fas fa-bell';
+      case 'medication': return Pill;
+      case 'appointment': return CalendarLucide;
+      case 'checkup': return Stethoscope;
+      case 'exercise': return Activity;
+      default: return Bell;
     }
   };
 
@@ -214,7 +214,7 @@ export default function RemindersPage() {
         {/* Header */}
         <div className="text-center mb-12">
           <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-            <i className="fas fa-calendar-check text-3xl text-white"></i>
+            <CalendarLucide className="h-10 w-10 text-white" />
           </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Health Reminders</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
@@ -222,13 +222,13 @@ export default function RemindersPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
           {/* Add Reminder Form */}
-          <div className="lg:col-span-1">
+          <div className="xl:col-span-3">
             <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
               <CardHeader className="bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-t-lg">
                 <CardTitle className="flex items-center space-x-3 text-xl">
-                  <i className="fas fa-plus-circle text-2xl"></i>
+                  <PlusCircle className="h-6 w-6" />
                   <span>New Reminder</span>
                 </CardTitle>
                 <CardDescription className="text-blue-100">
@@ -356,7 +356,7 @@ export default function RemindersPage() {
                       />
                       <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
                         <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
-                          <i className="fas fa-clock text-indigo-600 text-sm"></i>
+                          <Clock className="h-4 w-4 text-indigo-600" />
                         </div>
                       </div>
                       <div className="absolute left-14 top-2 text-xs text-gray-500 uppercase tracking-wide">
@@ -399,7 +399,7 @@ export default function RemindersPage() {
                   <Button
                     onClick={handleAddReminder}
                     disabled={addReminder.isPending}
-                    className="w-full h-12 bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white font-semibold shadow-lg transition-all duration-200 transform hover:scale-105"
+                    className="w-full h-12 bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white font-semibold shadow-lg transition-all duration-200 hover:shadow-xl"
                     data-testid="button-add-reminder"
                   >
                     {addReminder.isPending ? (
@@ -409,7 +409,7 @@ export default function RemindersPage() {
                       </div>
                     ) : (
                       <div className="flex items-center space-x-3">
-                        <i className="fas fa-plus-circle text-lg"></i>
+                        <PlusCircle className="h-5 w-5" />
                         <span>Create Reminder</span>
                       </div>
                     )}
@@ -422,7 +422,7 @@ export default function RemindersPage() {
             <Card className="mt-8 shadow-lg border-0 bg-white/80 backdrop-blur-sm">
               <CardHeader className="bg-gradient-to-r from-emerald-600 to-blue-600 text-white rounded-t-lg">
                 <CardTitle className="flex items-center space-x-3 text-lg">
-                  <i className="fas fa-chart-line text-xl"></i>
+                  <BarChart3 className="h-5 w-5" />
                   <span>Health Overview</span>
                 </CardTitle>
               </CardHeader>
@@ -431,7 +431,7 @@ export default function RemindersPage() {
                   <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-lg border border-emerald-200">
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center">
-                        <i className="fas fa-check text-white text-sm"></i>
+                        <CheckCircle className="h-5 w-5 text-white" />
                       </div>
                       <span className="font-medium text-emerald-800">Active Reminders</span>
                     </div>
@@ -442,7 +442,7 @@ export default function RemindersPage() {
                   <div className="flex items-center justify-between p-3 bg-amber-50 rounded-lg border border-amber-200">
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 bg-amber-500 rounded-full flex items-center justify-center">
-                        <i className="fas fa-clock text-white text-sm"></i>
+                        <Clock className="h-5 w-5 text-white" />
                       </div>
                       <span className="font-medium text-amber-800">Due Today</span>
                     </div>
@@ -453,7 +453,7 @@ export default function RemindersPage() {
                   <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-                        <i className="fas fa-calendar-week text-white text-sm"></i>
+                        <CalendarLucide className="h-5 w-5 text-white" />
                       </div>
                       <span className="font-medium text-blue-800">Total Reminders</span>
                     </div>
@@ -467,7 +467,7 @@ export default function RemindersPage() {
           </div>
 
           {/* Calendar View */}
-          <div className="xl:col-span-2">
+          <div className="xl:col-span-6">
             <Card className="shadow-2xl border-0 bg-white rounded-3xl overflow-hidden">
               <CardHeader className="bg-white border-b border-gray-100 p-6">
                 <div className="flex items-center justify-between">
@@ -502,37 +502,30 @@ export default function RemindersPage() {
                     modifiers={{
                       hasReminders: Array.from(getDaysWithReminders()).map(dateStr => new Date(dateStr))
                     }}
-                    modifiersStyles={{
-                      hasReminders: {
-                        backgroundColor: '#3b82f6',
-                        color: 'white',
-                        fontWeight: '600',
-                        borderRadius: '12px',
-                        transform: 'scale(1.05)',
-                        boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
-                      }
+                    modifiersClassNames={{
+                      hasReminders: "bg-blue-600 text-white font-semibold rounded-lg ring-2 ring-blue-300 ring-offset-1"
                     }}
                     data-testid="calendar-view"
                     classNames={{
                       months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 w-full",
-                      month: "space-y-6 w-full",
+                      month: "space-y-4 w-full",
                       caption: "flex justify-center pt-4 pb-2 relative items-center",
-                      caption_label: "text-2xl font-bold text-gray-900",
+                      caption_label: "text-xl font-bold text-gray-900",
                       nav: "space-x-2 flex items-center",
-                      nav_button: "h-10 w-10 bg-gray-100 hover:bg-blue-100 p-0 rounded-xl transition-all duration-200 hover:scale-110",
+                      nav_button: "h-9 w-9 bg-gray-100 hover:bg-blue-100 p-0 rounded-lg transition-colors",
                       nav_button_previous: "absolute left-4",
                       nav_button_next: "absolute right-4",
-                      table: "w-full border-collapse",
-                      head_row: "flex bg-gray-50 mx-4 rounded-xl mb-2",
-                      head_cell: "text-gray-600 rounded-lg w-full font-semibold text-sm py-3 text-center uppercase tracking-wide",
-                      row: "flex w-full px-4 mb-1",
-                      cell: "text-center text-base p-1 relative w-full [&:has([aria-selected])]:bg-blue-50 focus-within:relative focus-within:z-20",
-                      day: "h-12 w-full p-0 font-medium aria-selected:opacity-100 hover:bg-blue-50 rounded-xl transition-all duration-200 hover:scale-105 cursor-pointer flex items-center justify-center",
+                      table: "w-full border-collapse mx-4",
+                      head_row: "grid grid-cols-7 bg-gray-50 rounded-lg mb-2",
+                      head_cell: "text-gray-600 font-semibold text-sm py-2 text-center uppercase tracking-wide",
+                      row: "grid grid-cols-7 mb-1",
+                      cell: "text-center p-1 relative [&:has([aria-selected])]:bg-blue-50 focus-within:relative focus-within:z-20",
+                      day: "h-10 w-10 mx-auto p-0 font-medium hover:bg-blue-50 rounded-lg transition-colors cursor-pointer flex items-center justify-center",
                       day_range_end: "day-range-end",
-                      day_selected: "bg-blue-600 text-white hover:bg-blue-700 hover:text-white focus:bg-blue-600 focus:text-white font-bold shadow-lg scale-105",
-                      day_today: "bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-900 font-bold border-2 border-blue-300",
-                      day_outside: "text-gray-300 opacity-40",
-                      day_disabled: "text-gray-300 opacity-30 cursor-not-allowed hover:bg-transparent hover:scale-100",
+                      day_selected: "bg-blue-600 text-white hover:bg-blue-700 focus:bg-blue-600 focus:text-white font-bold ring-2 ring-blue-300",
+                      day_today: "bg-blue-100 text-blue-900 font-bold border-2 border-blue-400",
+                      day_outside: "text-gray-400 opacity-50",
+                      day_disabled: "text-gray-400 opacity-30 cursor-not-allowed hover:bg-transparent",
                       day_hidden: "invisible",
                     }}
                   />
@@ -555,11 +548,11 @@ export default function RemindersPage() {
           </div>
 
           {/* Day Detail - Reminders for Selected Date */}
-          <div className="xl:col-span-1">
+          <div className="xl:col-span-3">
             <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
               <CardHeader className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-t-lg">
                 <CardTitle className="flex items-center space-x-3 text-lg">
-                  <i className="fas fa-list-check text-xl"></i>
+                  <List className="h-5 w-5" />
                   <span>{format(selectedCalendarDate, "MMM d")}</span>
                 </CardTitle>
                 <CardDescription className="text-indigo-100">
@@ -580,7 +573,7 @@ export default function RemindersPage() {
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center space-x-2 mb-1">
-                              <i className={`${getTypeIcon(reminder.reminderType)} text-sm`}></i>
+                              {(() => { const Icon = getTypeIcon(reminder.reminderType); return <Icon className="h-4 w-4 text-gray-600" />; })()}
                               <h4 className="font-medium text-gray-900 text-sm">{reminder.title}</h4>
                               {reminder.isActive && (
                                 <Badge className="bg-green-100 text-green-800 text-xs">Active</Badge>
@@ -593,7 +586,7 @@ export default function RemindersPage() {
                             
                             <div className="flex items-center space-x-3 text-xs text-gray-500">
                               <span>
-                                <i className="fas fa-clock mr-1"></i>
+                                <Clock className="h-4 w-4 mr-1" />
                                 {new Date(reminder.scheduledAt).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' })}
                               </span>
                               <Badge className={`${getTypeColor(reminder.reminderType)} text-xs`}>
@@ -610,7 +603,7 @@ export default function RemindersPage() {
                               data-testid={`button-day-toggle-${reminder.id}`}
                               className="h-7 w-7 p-0"
                             >
-                              <i className={`fas ${reminder.isActive ? 'fa-pause' : 'fa-play'} text-xs`}></i>
+                              {reminder.isActive ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
                             </Button>
                             <Button
                               variant="outline"
@@ -619,7 +612,7 @@ export default function RemindersPage() {
                               onClick={() => deleteReminder.mutate(reminder.id)}
                               data-testid={`button-day-delete-${reminder.id}`}
                             >
-                              <i className="fas fa-trash text-xs"></i>
+                              <Trash2 className="h-3 w-3" />
                             </Button>
                           </div>
                         </div>
@@ -629,7 +622,7 @@ export default function RemindersPage() {
                 ) : (
                   <div className="text-center py-8">
                     <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <i className="fas fa-calendar-day text-2xl text-gray-400"></i>
+                      <CalendarDays className="h-8 w-8 text-gray-400" />
                     </div>
                     <p className="text-gray-600 font-medium mb-2">No reminders scheduled</p>
                     <p className="text-sm text-gray-500 leading-relaxed">Select a purple date on the calendar<br />or create a new reminder</p>
@@ -645,7 +638,7 @@ export default function RemindersPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <i className="fas fa-list text-blue-600"></i>
+                <List className="h-5 w-5 text-blue-600" />
                   <span>Your Reminders</span>
                 </CardTitle>
                 <CardDescription>
@@ -671,7 +664,7 @@ export default function RemindersPage() {
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center space-x-3 mb-2">
-                              <i className={`${getTypeIcon(reminder.reminderType)} text-lg`}></i>
+                              {(() => { const Icon = getTypeIcon(reminder.reminderType); return <Icon className="h-5 w-5 text-gray-600" />; })()}
                               <h3 className="font-semibold text-gray-900">{reminder.title}</h3>
                               <Badge className={getTypeColor(reminder.reminderType)}>
                                 {reminder.reminderType}
@@ -687,15 +680,15 @@ export default function RemindersPage() {
                             
                             <div className="flex items-center space-x-4 text-sm text-gray-500">
                               <span>
-                                <i className="fas fa-clock mr-1"></i>
+                                <Clock className="h-4 w-4 mr-1" />
                                 {new Date(reminder.scheduledAt).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' })}
                               </span>
                               <span>
-                                <i className="fas fa-repeat mr-1"></i>
+                                <Repeat className="h-4 w-4 mr-1" />
                                 {reminder.frequency || 'once'}
                               </span>
                               <span>
-                                <i className="fas fa-bell mr-1"></i>
+                                <Bell className="h-4 w-4 mr-1" />
                                 {new Date(reminder.scheduledAt).toLocaleDateString()} at {new Date(reminder.scheduledAt).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' })}
                               </span>
                             </div>
@@ -718,7 +711,7 @@ export default function RemindersPage() {
                               onClick={() => deleteReminder.mutate(reminder.id)}
                               data-testid={`button-delete-${reminder.id}`}
                             >
-                              <i className="fas fa-trash"></i>
+                              <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
                         </div>
@@ -727,7 +720,7 @@ export default function RemindersPage() {
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <i className="fas fa-calendar-plus text-4xl text-gray-400 mb-4"></i>
+                    <CalendarPlus className="h-16 w-16 text-gray-400 mb-4" />
                     <p className="text-gray-500 mb-2">No reminders set yet</p>
                     <p className="text-sm text-gray-400">Create your first health reminder using the form on the left</p>
                   </div>
@@ -739,7 +732,7 @@ export default function RemindersPage() {
             <Card className="mt-6">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
-                  <i className="fas fa-cog text-gray-600"></i>
+                  <Settings className="h-4 w-4 text-gray-600" />
                   <span>Notification Settings</span>
                 </CardTitle>
               </CardHeader>
