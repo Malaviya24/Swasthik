@@ -139,7 +139,7 @@ export default function RemindersPage() {
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [reminderFilter, setReminderFilter] = useState<'all' | 'active' | 'today' | 'upcoming'>('all');
+  const [reminderFilter, setReminderFilter] = useState<'all' | 'active' | 'today' | 'upcoming' | 'selected'>('selected');
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
   const [notifiedReminders, setNotifiedReminders] = useState<Set<string>>(new Set());
@@ -467,15 +467,16 @@ export default function RemindersPage() {
   // Get filtered reminders based on current filter
   const getFilteredReminders = () => {
     switch (reminderFilter) {
+      case 'all':
+        return reminders; // Show all reminders when explicitly selecting 'all'
       case 'active':
         return activeReminders;
       case 'today':
         return todayReminders;
       case 'upcoming':
         return upcomingReminders;
-      case 'all':
       default:
-        return reminders; // Show all reminders for 'all' filter
+        return selectedDateReminders; // Default: show reminders for selected calendar date
     }
   };
   
@@ -930,8 +931,8 @@ export default function RemindersPage() {
                   onSelect={(date) => {
                     if (date) {
                       setSelectedCalendarDate(date);
-                      // Reset to 'all' filter when selecting a date to show date-specific reminders
-                      setReminderFilter('all');
+                      // Reset to 'selected' filter when selecting a date to show date-specific reminders
+                      setReminderFilter('selected');
                     }
                   }}
                   month={currentMonth}
