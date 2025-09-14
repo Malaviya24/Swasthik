@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,7 +14,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Heart, Pill, Stethoscope, Activity, Plus, Edit2, Trash2, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Heart, Pill, Stethoscope, Activity, Plus, Edit2, Trash2, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Bell, BellOff } from 'lucide-react';
 import { format, addMonths, subMonths, isAfter, isSameDay, isValid } from 'date-fns';
 import { z } from 'zod';
 import { type Reminder, insertReminderSchema, type InsertReminder } from '@shared/schema';
@@ -130,6 +130,10 @@ export default function RemindersPage() {
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [reminderFilter, setReminderFilter] = useState<'all' | 'active' | 'today' | 'upcoming'>('all');
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
+  const [notifiedReminders, setNotifiedReminders] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -367,6 +371,160 @@ export default function RemindersPage() {
 
   const selectedDateReminders = getRemindersByDate(selectedCalendarDate);
   const activeReminders = reminders.filter((r) => r.isActive);
+  const todayReminders = getRemindersByDate(new Date());
+  const upcomingReminders = reminders.filter((r) => {
+    const reminderDate = new Date(r.scheduledAt);
+    return isValid(reminderDate) && isAfter(reminderDate, new Date()) && r.isActive;
+  });
+  
+  // Get filtered reminders based on current filter
+  const getFilteredReminders = () => {
+    switch (reminderFilter) {
+      case 'active':
+        return activeReminders;
+      case 'today':
+        return todayReminders;
+      case 'upcoming':
+        return upcomingReminders;
+      default:
+        return reminders;
+    }
+  };
+  
+  const displayedReminders = getFilteredReminders();
+
+  // Notification functions
+  const requestNotificationPermission = async () => {
+    if (!('Notification' in window)) {
+      toast({
+        title: "Notifications not supported",
+        description: "Your browser doesn't support notifications.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const permission = await Notification.requestPermission();
+      setNotificationPermission(permission);
+      
+      if (permission === 'granted') {
+        setNotificationsEnabled(true);
+        toast({
+          title: "Notifications enabled",
+          description: "You'll receive reminders when they're due.",
+        });
+      } else {
+        setNotificationsEnabled(false);
+        toast({
+          title: "Notifications denied",
+          description: "Enable notifications in your browser to receive reminders.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error requesting notification permission:', error);
+      toast({
+        title: "Permission error",
+        description: "Unable to request notification permission.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const showNotification = (reminder: Reminder) => {
+    if (!('Notification' in window) || Notification.permission !== 'granted') {
+      return;
+    }
+
+    const reminderDate = new Date(reminder.scheduledAt);
+    const timeString = isValid(reminderDate) ? format(reminderDate, 'h:mm a') : '';
+    
+    const notification = new Notification(`🔔 Health Reminder: ${reminder.title}`, {
+      body: `${reminder.description || 'Time for your health reminder'}\nScheduled for: ${timeString}`,
+      icon: '/favicon.ico',
+      tag: reminder.id,
+      requireInteraction: true,
+    });
+
+    notification.onclick = () => {
+      window.focus();
+      notification.close();
+    };
+
+    // Auto close after 10 seconds
+    setTimeout(() => {
+      notification.close();
+    }, 10000);
+  };
+
+  const checkForDueReminders = () => {
+    if (!notificationsEnabled || Notification.permission !== 'granted') {
+      return;
+    }
+
+    const now = new Date();
+    const nowTime = now.getTime();
+    
+    activeReminders.forEach(reminder => {
+      const reminderDate = new Date(reminder.scheduledAt);
+      if (!isValid(reminderDate)) return;
+      
+      // Skip if already notified
+      if (notifiedReminders.has(reminder.id)) return;
+      
+      const reminderTime = reminderDate.getTime();
+      const timeDifference = reminderTime - nowTime;
+      
+      // Show notification if reminder is due (within 30 seconds)
+      if (timeDifference <= 30000 && timeDifference > -30000) {
+        showNotification(reminder);
+        // Mark as notified
+        setNotifiedReminders(prev => new Set([...Array.from(prev), reminder.id]));
+      }
+    });
+
+    // Clean up old notifications (remove IDs for reminders more than 5 minutes past due)
+    const cutoffTime = nowTime - (5 * 60 * 1000); // 5 minutes ago
+    setNotifiedReminders(prev => {
+      const newSet = new Set<string>();
+      Array.from(prev).forEach(reminderId => {
+        const reminder = activeReminders.find(r => r.id === reminderId);
+        if (reminder) {
+          const reminderTime = new Date(reminder.scheduledAt).getTime();
+          if (reminderTime > cutoffTime) {
+            newSet.add(reminderId);
+          }
+        }
+      });
+      return newSet;
+    });
+  };
+
+  // Check for due reminders on component mount and set up interval
+  useEffect(() => {
+    // Check notification permission on mount
+    if ('Notification' in window) {
+      setNotificationPermission(Notification.permission);
+      setNotificationsEnabled(Notification.permission === 'granted');
+    }
+
+    let interval: NodeJS.Timeout | null = null;
+    
+    if (notificationsEnabled) {
+      // Check immediately
+      checkForDueReminders();
+      
+      // Check every 30 seconds
+      interval = setInterval(checkForDueReminders, 30000);
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [notificationsEnabled, activeReminders]);
 
   // Helper function to check if date has reminders
   const dateHasReminders = (date: Date) => {
@@ -560,19 +718,80 @@ export default function RemindersPage() {
                 
                 {/* Quick Stats */}
                 <div className="mt-6 pt-6 border-t border-gray-100">
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div>
+                  <div className="grid grid-cols-2 gap-2 mb-4">
+                    <button
+                      onClick={() => setReminderFilter('today')}
+                      className={`p-3 rounded-lg transition-colors ${reminderFilter === 'today' ? 'bg-green-100 text-green-700 border border-green-300' : 'hover:bg-gray-50 border border-gray-200'}`}
+                      data-testid="filter-today"
+                    >
+                      <div className="text-2xl font-bold text-green-600">{todayReminders.length}</div>
+                      <div className="text-xs text-gray-500">Today</div>
+                    </button>
+                    <button
+                      onClick={() => setReminderFilter('upcoming')}
+                      className={`p-3 rounded-lg transition-colors ${reminderFilter === 'upcoming' ? 'bg-orange-100 text-orange-700 border border-orange-300' : 'hover:bg-gray-50 border border-gray-200'}`}
+                      data-testid="filter-upcoming"
+                    >
+                      <div className="text-2xl font-bold text-orange-600">{upcomingReminders.length}</div>
+                      <div className="text-xs text-gray-500">Upcoming</div>
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => setReminderFilter('active')}
+                      className={`p-3 rounded-lg transition-colors ${reminderFilter === 'active' ? 'bg-blue-100 text-blue-700 border border-blue-300' : 'hover:bg-gray-50 border border-gray-200'}`}
+                      data-testid="filter-active"
+                    >
                       <div className="text-2xl font-bold text-blue-600">{activeReminders.length}</div>
                       <div className="text-xs text-gray-500">Active</div>
-                    </div>
-                    <div>
-                      <div className="text-2xl font-bold text-green-600">{getRemindersByDate(new Date()).length}</div>
-                      <div className="text-xs text-gray-500">Today</div>
-                    </div>
-                    <div>
+                    </button>
+                    <button
+                      onClick={() => setReminderFilter('all')}
+                      className={`p-3 rounded-lg transition-colors ${reminderFilter === 'all' ? 'bg-gray-100 text-gray-700 border border-gray-300' : 'hover:bg-gray-50 border border-gray-200'}`}
+                      data-testid="filter-all"
+                    >
                       <div className="text-2xl font-bold text-gray-600">{reminders.length}</div>
                       <div className="text-xs text-gray-500">Total</div>
+                    </button>
+                  </div>
+                  
+                  {/* Notification Controls */}
+                  <div className="mt-6 pt-6 border-t border-gray-100">
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-sm font-medium text-gray-700">
+                        Reminder Notifications
+                      </label>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={notificationsEnabled ? () => setNotificationsEnabled(false) : requestNotificationPermission}
+                        className={`h-8 p-2 transition-colors ${
+                          notificationsEnabled 
+                            ? 'text-green-600 hover:text-green-700 hover:bg-green-50' 
+                            : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'
+                        }`}
+                        data-testid="button-toggle-notifications"
+                      >
+                        {notificationsEnabled ? (
+                          <>
+                            <Bell className="h-4 w-4 mr-1" />
+                            On
+                          </>
+                        ) : (
+                          <>
+                            <BellOff className="h-4 w-4 mr-1" />
+                            Off
+                          </>
+                        )}
+                      </Button>
                     </div>
+                    <p className="text-xs text-gray-500">
+                      {notificationsEnabled 
+                        ? 'You\'ll receive notifications when reminders are due'
+                        : notificationPermission === 'denied' 
+                        ? 'Notifications blocked. Enable in browser settings to receive alerts'
+                        : 'Enable notifications to get reminded when it\'s time for your health reminders'}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -652,12 +871,21 @@ export default function RemindersPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="text-lg font-semibold text-gray-900">
-                      {isSameDay(selectedCalendarDate, new Date()) ? "Today's Reminders" : `Reminders for ${format(selectedCalendarDate, 'MMM d, yyyy')}`}
+                      {reminderFilter === 'today' ? "Today's Reminders" :
+                       reminderFilter === 'upcoming' ? "Upcoming Reminders" :
+                       reminderFilter === 'active' ? "Active Reminders" :
+                       isSameDay(selectedCalendarDate, new Date()) ? "Today's Reminders" :
+                       `Reminders for ${format(selectedCalendarDate, 'MMM d, yyyy')}`}
                     </CardTitle>
                     <CardDescription className="text-sm text-gray-600">
-                      {selectedDateReminders.length === 0 
-                        ? 'No reminders scheduled for this day' 
-                        : `${selectedDateReminders.length} reminder${selectedDateReminders.length > 1 ? 's' : ''} scheduled`}
+                      {reminderFilter === 'all' ?
+                        (selectedDateReminders.length === 0 
+                          ? 'No reminders scheduled for this day' 
+                          : `${selectedDateReminders.length} reminder${selectedDateReminders.length > 1 ? 's' : ''} scheduled`) :
+                        `Showing ${displayedReminders.length} ${reminderFilter} reminder${displayedReminders.length !== 1 ? 's' : ''}` &&
+                        selectedDateReminders.length === 0 
+                          ? 'No reminders scheduled for this day' 
+                          : `${selectedDateReminders.length} reminder${selectedDateReminders.length > 1 ? 's' : ''} scheduled`}
                     </CardDescription>
                   </div>
                 </div>
@@ -673,15 +901,20 @@ export default function RemindersPage() {
                   <div className="text-center py-8 text-red-500" data-testid="error-reminders">
                     Failed to load reminders
                   </div>
-                ) : selectedDateReminders.length === 0 ? (
+                ) : displayedReminders.length === 0 ? (
                   <div className="text-center py-12">
                     <CalendarIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500 mb-2">No reminders for this day</p>
+                    <p className="text-gray-500 mb-2">
+                      {reminderFilter === 'today' ? 'No reminders for today' :
+                       reminderFilter === 'upcoming' ? 'No upcoming reminders' :
+                       reminderFilter === 'active' ? 'No active reminders' :
+                       'No reminders for this day'}
+                    </p>
                     <p className="text-sm text-gray-400">Add a reminder using the form on the left</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {selectedDateReminders.map((reminder) => {
+                    {displayedReminders.map((reminder) => {
                       const category = reminder.reminderType as Category;
                       const meta = getCategoryMeta(category);
                       const IconComponent = meta.icon;
