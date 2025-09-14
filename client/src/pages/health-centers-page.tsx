@@ -12,6 +12,7 @@ interface HealthCenter {
   id: string;
   name: string;
   type: string;
+  hospitalType: 'Government' | 'Private';
   address: string;
   phone: string;
   rating: number;
@@ -24,6 +25,7 @@ interface HealthCenter {
 export default function HealthCentersPage() {
   const [location, setLocation] = useState('');
   const [centerType, setCenterType] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [centers, setCenters] = useState<HealthCenter[]>([]);
   const { toast } = useToast();
 
@@ -61,6 +63,7 @@ export default function HealthCentersPage() {
     searchCenters.mutate({
       location,
       type: centerType,
+      search: searchQuery,
     });
   };
 
@@ -74,11 +77,53 @@ export default function HealthCentersPage() {
     }
   };
 
+  const getHospitalTypeBadge = (hospitalType: 'Government' | 'Private') => {
+    if (hospitalType === 'Government') {
+      return {
+        color: 'bg-green-100 text-green-800 border-green-300',
+        emoji: '🟢',
+        text: 'Government'
+      };
+    }
+    return {
+      color: 'bg-blue-100 text-blue-800 border-blue-300',
+      emoji: '🔵',
+      text: 'Private'
+    };
+  };
+
   const sampleCenters: HealthCenter[] = [
     {
       id: '1',
+      name: 'Civil Hospital',
+      type: 'Hospital',
+      hospitalType: 'Government',
+      address: 'Civil Hospital Road, Bangalore, Karnataka 560001',
+      phone: '+91-80-2692-1111',
+      rating: 4.1,
+      distance: '1.5 km',
+      specialties: ['General Medicine', 'Emergency Care', 'Surgery', 'Pediatrics'],
+      timings: '24/7',
+      emergency: true
+    },
+    {
+      id: '2',
+      name: 'AIIMS',
+      type: 'Hospital',
+      hospitalType: 'Government',
+      address: 'AIIMS Campus, Bangalore, Karnataka 560012',
+      phone: '+91-80-2692-1100',
+      rating: 4.8,
+      distance: '3.2 km',
+      specialties: ['Cardiology', 'Neurology', 'Oncology', 'Emergency', 'Research'],
+      timings: '24/7',
+      emergency: true
+    },
+    {
+      id: '3',
       name: 'Apollo Hospital',
       type: 'Hospital',
+      hospitalType: 'Private',
       address: 'MG Road, Bangalore, Karnataka 560001',
       phone: '+91-80-2692-2222',
       rating: 4.5,
@@ -88,28 +133,17 @@ export default function HealthCentersPage() {
       emergency: true
     },
     {
-      id: '2',
-      name: 'Fortis Clinic',
-      type: 'Clinic',
-      address: 'Brigade Road, Bangalore, Karnataka 560025',
-      phone: '+91-80-4068-3333',
-      rating: 4.2,
-      distance: '1.8 km',
-      specialties: ['General Practice', 'Dermatology', 'Pediatrics'],
-      timings: '9:00 AM - 9:00 PM',
-      emergency: false
-    },
-    {
-      id: '3',
-      name: 'MedPlus Pharmacy',
-      type: 'Pharmacy',
-      address: 'Commercial Street, Bangalore, Karnataka 560001',
-      phone: '+91-80-2559-9988',
-      rating: 4.0,
-      distance: '1.2 km',
-      specialties: ['Medications', 'Health Products', 'Vaccines'],
-      timings: '8:00 AM - 10:00 PM',
-      emergency: false
+      id: '4',
+      name: 'Sterling Hospital',
+      type: 'Hospital',
+      hospitalType: 'Private',
+      address: 'Sterling Road, Bangalore, Karnataka 560025',
+      phone: '+91-80-2692-3333',
+      rating: 4.3,
+      distance: '2.8 km',
+      specialties: ['Orthopedics', 'Cardiology', 'Gastroenterology', 'Emergency'],
+      timings: '24/7',
+      emergency: true
     }
   ];
 
@@ -141,8 +175,8 @@ export default function HealthCentersPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="md:col-span-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="md:col-span-2 lg:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Location *
                 </label>
@@ -152,6 +186,18 @@ export default function HealthCentersPage() {
                   onChange={(e) => setLocation(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                   data-testid="input-location"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Search (optional)
+                </label>
+                <Input
+                  placeholder="Search by name, location, or specialty"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  data-testid="input-search"
                 />
               </div>
               <div>
@@ -221,8 +267,16 @@ export default function HealthCentersPage() {
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div>
-                        <CardTitle className="text-lg">{center.name}</CardTitle>
-                        <div className="flex items-center space-x-2 mt-1">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          {center.name}
+                          <span className="text-sm">
+                            {getHospitalTypeBadge(center.hospitalType).emoji}
+                          </span>
+                        </CardTitle>
+                        <div className="flex items-center space-x-2 mt-1 flex-wrap gap-1">
+                          <Badge className={getHospitalTypeBadge(center.hospitalType).color}>
+                            {getHospitalTypeBadge(center.hospitalType).emoji} {getHospitalTypeBadge(center.hospitalType).text}
+                          </Badge>
                           <Badge className={getTypeColor(center.type)}>
                             {center.type}
                           </Badge>

@@ -96,6 +96,7 @@ export const healthCenterSchema = z.object({
   id: z.string(),
   name: z.string(),
   type: z.string(),
+  hospitalType: z.enum(["Government", "Private"]),
   address: z.string(),
   phone: z.string(),
   rating: z.number(),
@@ -118,7 +119,8 @@ export const medicationSearchSchema = z.object({
 
 export const healthCenterSearchSchema = z.object({
   location: z.string().min(1, 'Location is required'),
-  type: z.string().optional()
+  type: z.string().optional(),
+  search: z.string().optional()
 });
 
 // Types

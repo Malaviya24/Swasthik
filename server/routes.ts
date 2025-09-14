@@ -591,14 +591,41 @@ Please provide a helpful analysis while including these important disclaimers:
         return res.status(400).json({ error: validationResult.error.issues[0].message });
       }
 
-      const { location, type } = validationResult.data;
+      const { location, type, search } = validationResult.data;
 
-      // Mock health centers data based on location that matches frontend HealthCenter type
-      const mockHealthCenters: HealthCenter[] = [
+      // Mock health centers data with Government-first priority and search functionality
+      let mockHealthCenters: HealthCenter[] = [
         {
           id: '1',
+          name: 'Civil Hospital',
+          type: 'Hospital',
+          hospitalType: 'Government',
+          address: `Civil Hospital Road, ${location}`,
+          phone: '+91-80-2692-1111',
+          rating: 4.1,
+          distance: '1.5 km',
+          specialties: ['General Medicine', 'Emergency Care', 'Surgery', 'Pediatrics'],
+          timings: '24/7',
+          emergency: true
+        },
+        {
+          id: '2',
+          name: 'AIIMS',
+          type: 'Hospital',
+          hospitalType: 'Government',
+          address: `AIIMS Campus, ${location}`,
+          phone: '+91-80-2692-1100',
+          rating: 4.8,
+          distance: '3.2 km',
+          specialties: ['Cardiology', 'Neurology', 'Oncology', 'Emergency', 'Research'],
+          timings: '24/7',
+          emergency: true
+        },
+        {
+          id: '3',
           name: 'Apollo Hospital',
           type: 'Hospital',
+          hospitalType: 'Private',
           address: `MG Road, ${location}`,
           phone: '+91-80-2692-2222',
           rating: 4.5,
@@ -608,9 +635,36 @@ Please provide a helpful analysis while including these important disclaimers:
           emergency: true
         },
         {
-          id: '2',
+          id: '4',
+          name: 'Sterling Hospital',
+          type: 'Hospital',
+          hospitalType: 'Private',
+          address: `Sterling Road, ${location}`,
+          phone: '+91-80-2692-3333',
+          rating: 4.3,
+          distance: '2.8 km',
+          specialties: ['Orthopedics', 'Cardiology', 'Gastroenterology', 'Emergency'],
+          timings: '24/7',
+          emergency: true
+        },
+        {
+          id: '5',
+          name: 'Government Primary Health Centre',
+          type: 'Clinic',
+          hospitalType: 'Government',
+          address: `Primary Health Centre, ${location}`,
+          phone: '+91-80-2692-1200',
+          rating: 3.8,
+          distance: '1.0 km',
+          specialties: ['General Medicine', 'Vaccination', 'Maternal Care'],
+          timings: '9:00 AM - 5:00 PM',
+          emergency: false
+        },
+        {
+          id: '6',
           name: 'Fortis Clinic',
           type: 'Clinic',
+          hospitalType: 'Private',
           address: `Brigade Road, ${location}`,
           phone: '+91-80-4068-3333',
           rating: 4.2,
@@ -620,21 +674,10 @@ Please provide a helpful analysis while including these important disclaimers:
           emergency: false
         },
         {
-          id: '3',
-          name: 'MedPlus Pharmacy',
-          type: 'Pharmacy',
-          address: `Commercial Street, ${location}`,
-          phone: '+91-80-2559-9988',
-          rating: 4.0,
-          distance: '1.2 km',
-          specialties: ['Medications', 'Health Products', 'Vaccines'],
-          timings: '8:00 AM - 10:00 PM',
-          emergency: false
-        },
-        {
-          id: '4',
+          id: '7',
           name: 'City Diagnostic Center',
           type: 'Diagnostic',
+          hospitalType: 'Private',
           address: `Park Street, ${location}`,
           phone: '+91-80-3344-5566',
           rating: 4.3,
@@ -653,7 +696,29 @@ Please provide a helpful analysis while including these important disclaimers:
         );
       }
 
-      res.json(filteredCenters);
+      // Filter by search query if specified (search in name, address, specialties)
+      if (search && search.trim()) {
+        const searchLower = search.toLowerCase().trim();
+        filteredCenters = filteredCenters.filter(center =>
+          center.name.toLowerCase().includes(searchLower) ||
+          center.address.toLowerCase().includes(searchLower) ||
+          center.specialties.some(specialty => specialty.toLowerCase().includes(searchLower))
+        );
+      }
+
+      // Sort by Government first, then Private, then by distance within each group
+      const sortedCenters = filteredCenters.sort((a, b) => {
+        // First priority: Government hospitals come first
+        if (a.hospitalType === 'Government' && b.hospitalType === 'Private') return -1;
+        if (a.hospitalType === 'Private' && b.hospitalType === 'Government') return 1;
+        
+        // Same hospital type, sort by distance
+        const distanceA = parseFloat(a.distance.replace(' km', ''));
+        const distanceB = parseFloat(b.distance.replace(' km', ''));
+        return distanceA - distanceB;
+      });
+
+      res.json(sortedCenters);
     } catch (error) {
       console.error('Health centers search error:', error);
       res.status(500).json({ error: 'Failed to search health centers' });
