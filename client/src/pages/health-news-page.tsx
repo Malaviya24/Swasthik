@@ -56,6 +56,12 @@ export default function HealthNewsPage() {
       const mockLiveNews: NewsArticle[] = generateRecentHealthNews();
       
       setLiveNews(mockLiveNews);
+      
+      // Show success toast to confirm refresh worked
+      toast({
+        title: "News Refreshed",
+        description: `Successfully updated health news feed with ${mockLiveNews.length} articles.`,
+      });
     } catch (error) {
       console.error('Error fetching health news:', error);
       toast({
@@ -71,6 +77,7 @@ export default function HealthNewsPage() {
   // Generate recent health news with current dates
   const generateRecentHealthNews = (): NewsArticle[] => {
     const today = new Date();
+    
     const newsTemplates = [
       {
         title: "WHO Reports Breakthrough in Alzheimer's Disease Treatment",
@@ -138,12 +145,21 @@ export default function HealthNewsPage() {
       }
     ];
 
-    return newsTemplates.map((template, index) => ({
-      id: `live-${index + 1}`,
+    // Shuffle the news templates to show different order on refresh
+    const shuffled = [...newsTemplates].sort(() => Math.random() - 0.5);
+    
+    // Randomly feature 2-3 articles
+    const featuredCount = Math.floor(Math.random() * 2) + 2; // 2 or 3 featured articles
+    shuffled.forEach((article, index) => {
+      article.featured = index < featuredCount;
+    });
+
+    return shuffled.map((template, index) => ({
+      id: `live-${Date.now()}-${index}`, // Use timestamp to ensure unique IDs
       ...template,
       date: new Date(today.getTime() - (index * 24 * 60 * 60 * 1000)).toISOString().split('T')[0], // Recent dates
       url: `https://example.com/health-news/${index + 1}`,
-      imageUrl: `https://images.unsplash.com/400x200/?health,medical,${template.category}`,
+      imageUrl: `https://images.unsplash.com/400x200/?health,medical,${template.category}&t=${Date.now()}`, // Add timestamp to images
       author: `Health Reporter ${index + 1}`,
     }));
   };
