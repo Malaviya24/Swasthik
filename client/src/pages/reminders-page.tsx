@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
-import { Switch } from '@/components/ui/switch';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -13,22 +14,65 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Heart, Pill, ChevronLeft, ChevronRight } from 'lucide-react';
-import { format, addMonths, subMonths, isAfter } from 'date-fns';
+import { Heart, Pill, Stethoscope, Activity, Plus, Edit2, Trash2, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { format, addMonths, subMonths, isAfter, isSameDay } from 'date-fns';
 import { z } from 'zod';
 import { type Reminder, insertReminderSchema, type InsertReminder } from '@shared/schema';
 
-// Extended validation schema for client-side validation
-const reminderFormSchema = insertReminderSchema.extend({
-  date: z.string(), // Date input as string
+// Category configuration
+type Category = 'medication' | 'appointment' | 'checkup' | 'exercise' | 'other';
+
+const CATEGORY_META: Record<Category, { label: string; icon: typeof Pill; bgColor: string; textColor: string; dotColor: string }> = {
+  medication: {
+    label: 'Medication',
+    icon: Pill,
+    bgColor: 'bg-blue-50 hover:bg-blue-100',
+    textColor: 'text-blue-700',
+    dotColor: 'bg-blue-500',
+  },
+  appointment: {
+    label: 'Appointment',
+    icon: Stethoscope,
+    bgColor: 'bg-green-50 hover:bg-green-100',
+    textColor: 'text-green-700',
+    dotColor: 'bg-green-500',
+  },
+  checkup: {
+    label: 'Health Checkup',
+    icon: Heart,
+    bgColor: 'bg-pink-50 hover:bg-pink-100',
+    textColor: 'text-pink-700',
+    dotColor: 'bg-pink-500',
+  },
+  exercise: {
+    label: 'Exercise',
+    icon: Activity,
+    bgColor: 'bg-orange-50 hover:bg-orange-100',
+    textColor: 'text-orange-700',
+    dotColor: 'bg-orange-500',
+  },
+  other: {
+    label: 'Other',
+    icon: CalendarIcon,
+    bgColor: 'bg-gray-50 hover:bg-gray-100',
+    textColor: 'text-gray-700',
+    dotColor: 'bg-gray-500',
+  },
+};
+
+// Form validation schema (separate from insert schema)
+const reminderFormSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  reminderType: z.enum(['medication', 'appointment', 'checkup', 'exercise', 'other']),
+  description: z.string().optional(),
+  date: z.string().min(1, 'Date is required'),
   time: z.string().min(1, 'Time is required'),
 }).refine((data) => {
-  // Validate that the scheduled date/time is in the future
   const scheduledDate = new Date(`${data.date}T${data.time}`);
   return isAfter(scheduledDate, new Date());
 }, {
   message: 'Please select a future date and time',
-  path: ['date'], // Show error on date field
+  path: ['date'],
 });
 
 type ReminderFormData = z.infer<typeof reminderFormSchema>;
@@ -36,12 +80,10 @@ type ReminderFormData = z.infer<typeof reminderFormSchema>;
 export default function RemindersPage() {
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date>(new Date());
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
-  const [notificationSettings, setNotificationSettings] = useState({
-    browserNotifications: true,
-    soundAlerts: false,
-    snoozeOption: true,
-  });
+  const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Initialize form with react-hook-form and zod validation
   const form = useForm<ReminderFormData>({
@@ -50,27 +92,15 @@ export default function RemindersPage() {
       title: '',
       reminderType: 'medication',
       description: '',
-      userId: '', // This will be set when we have auth
-      scheduledAt: new Date().toISOString(),
       date: format(new Date(), 'yyyy-MM-dd'),
       time: '',
-      isCompleted: false,
-      isActive: true,
     },
   });
 
-  // Load notification settings from localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem('notificationSettings');
-    if (saved) {
-      setNotificationSettings(JSON.parse(saved));
-    }
-  }, []);
-
-  // Save notification settings to localStorage
-  useEffect(() => {
-    localStorage.setItem('notificationSettings', JSON.stringify(notificationSettings));
-  }, [notificationSettings]);
+  // Edit form for editing existing reminders
+  const editForm = useForm<ReminderFormData>({
+    resolver: zodResolver(reminderFormSchema),
+  });
 
   // Fetch reminders from API
   const { data: reminders = [], isLoading, error } = useQuery<Reminder[]>({
@@ -91,7 +121,13 @@ export default function RemindersPage() {
         title: "Reminder Added",
         description: "Your health reminder has been set successfully.",
       });
-      form.reset();
+      form.reset({
+        title: '',
+        reminderType: 'medication',
+        description: '',
+        date: format(new Date(), 'yyyy-MM-dd'),
+        time: '',
+      });
       queryClient.invalidateQueries({ queryKey: ['/api/reminders'] });
     },
     onError: (error) => {
@@ -103,17 +139,61 @@ export default function RemindersPage() {
     },
   });
 
+  const updateReminder = useMutation<Reminder, Error, { id: string; data: Partial<InsertReminder> }>({
+    mutationFn: async ({ id, data }) => {
+      const response = await apiRequest('PATCH', `/api/reminders/${id}`, data);
+      return await response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Reminder Updated",
+        description: "Your reminder has been updated successfully.",
+      });
+      setEditingReminder(null);
+      setIsEditDialogOpen(false);
+      editForm.reset();
+      queryClient.invalidateQueries({ queryKey: ['/api/reminders'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to Update Reminder",
+        description: error.message || "Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteReminder = useMutation<{ success: boolean }, Error, string>({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest('DELETE', `/api/reminders/${id}`);
+      return await response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Reminder Deleted",
+        description: "Your reminder has been deleted successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/reminders'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to Delete Reminder",
+        description: error.message || "Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Handle form submission
   const onSubmit = (data: ReminderFormData) => {
-    // Combine date and time into scheduledAt
     const scheduledAt = new Date(`${data.date}T${data.time}`);
     
     const reminderData: InsertReminder = {
       title: data.title,
-      description: data.description || '',
+      description: data.description || null,
       reminderType: data.reminderType,
-      scheduledAt: scheduledAt.toISOString(),
-      userId: data.userId || 'temp-user', // TODO: Get from auth context
+      scheduledAt: scheduledAt,
+      userId: 'demo-user-123', // Using demo user ID like the backend
       isCompleted: false,
       isActive: true,
     };
@@ -121,413 +201,502 @@ export default function RemindersPage() {
     addReminder.mutate(reminderData);
   };
 
-  // Handle browser notification permission
-  const handleNotificationToggle = async (type: keyof typeof notificationSettings, enabled: boolean) => {
-    if (type === 'browserNotifications' && enabled) {
-      if ('Notification' in window) {
-        const permission = await Notification.requestPermission();
-        if (permission !== 'granted') {
-          toast({
-            title: "Permission Denied",
-            description: "Browser notifications require permission to work.",
-            variant: "destructive",
-          });
-          return;
-        }
-      } else {
-        toast({
-          title: "Not Supported",
-          description: "Your browser doesn't support notifications.",
-          variant: "destructive",
-        });
-        return;
-      }
-    }
+  // Handle edit form submission
+  const onEditSubmit = (data: ReminderFormData) => {
+    if (!editingReminder) return;
     
-    setNotificationSettings(prev => ({ ...prev, [type]: enabled }));
+    const scheduledAt = new Date(`${data.date}T${data.time}`);
+    
+    const reminderData: Partial<InsertReminder> = {
+      title: data.title,
+      description: data.description || null,
+      reminderType: data.reminderType,
+      scheduledAt: scheduledAt,
+    };
+
+    updateReminder.mutate({ id: editingReminder.id, data: reminderData });
+  };
+
+  // Handle edit button click
+  const handleEdit = (reminder: Reminder) => {
+    const reminderDate = new Date(reminder.scheduledAt);
+    editForm.reset({
+      title: reminder.title,
+      reminderType: reminder.reminderType as Category,
+      description: reminder.description || '',
+      date: format(reminderDate, 'yyyy-MM-dd'),
+      time: format(reminderDate, 'HH:mm'),
+    });
+    setEditingReminder(reminder);
+    setIsEditDialogOpen(true);
+  };
+
+  // Handle delete button click
+  const handleDelete = (id: string) => {
+    if (confirm('Are you sure you want to delete this reminder?')) {
+      deleteReminder.mutate(id);
+    }
   };
 
   // Helper functions
-  const getDateKey = (date: Date) => {
-    if (!date || isNaN(date.getTime())) {
-      return '';
-    }
-    return format(date, 'yyyy-MM-dd');
-  };
-
   const getRemindersByDate = (date: Date) => {
-    const dateKey = getDateKey(date);
-    if (!dateKey) return [];
-    
-    return reminders.filter((reminder: Reminder) => {
+    return reminders.filter((reminder) => {
       const reminderDate = new Date(reminder.scheduledAt);
-      if (!reminderDate || isNaN(reminderDate.getTime())) {
-        return false;
-      }
-      return getDateKey(reminderDate) === dateKey;
+      return isSameDay(reminderDate, date);
     });
   };
 
+  const getRemindersCountByCategory = (date: Date) => {
+    const dayReminders = getRemindersByDate(date);
+    const counts: Partial<Record<Category, number>> = {};
+    
+    dayReminders.forEach(reminder => {
+      const category = reminder.reminderType as Category;
+      counts[category] = (counts[category] || 0) + 1;
+    });
+    
+    return counts;
+  };
+
+  const getDominantCategory = (date: Date): Category | null => {
+    const counts = getRemindersCountByCategory(date);
+    const entries = Object.entries(counts) as [Category, number][];
+    
+    if (entries.length === 0) return null;
+    
+    return entries.reduce((max, current) => 
+      current[1] > max[1] ? current : max
+    )[0];
+  };
+
   const selectedDateReminders = getRemindersByDate(selectedCalendarDate);
-  const todayReminders = getRemindersByDate(new Date());
-  const activeReminders = reminders.filter((r: Reminder) => r.isActive);
+  const activeReminders = reminders.filter((r) => r.isActive);
+
+  // Check if a date has reminders
+  const hasReminders = (date: Date) => {
+    return reminders.some(r => isSameDay(new Date(r.scheduledAt), date));
+  };
+
+  const ReminderForm = ({ form, onSubmit, isLoading, submitLabel }: {
+    form: ReturnType<typeof useForm<ReminderFormData>>;
+    onSubmit: (data: ReminderFormData) => void;
+    isLoading: boolean;
+    submitLabel: string;
+  }) => (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Reminder Title</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="e.g., Take morning vitamins"
+                  {...field}
+                  data-testid="input-reminder-title"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="reminderType"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Category</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger data-testid="select-reminder-type">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {Object.entries(CATEGORY_META).map(([key, meta]) => (
+                    <SelectItem key={key} value={key}>
+                      {meta.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="date"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Date</FormLabel>
+                <FormControl>
+                  <Input
+                    type="date"
+                    {...field}
+                    data-testid="input-reminder-date"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="time"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Time</FormLabel>
+                <FormControl>
+                  <Input
+                    type="time"
+                    {...field}
+                    data-testid="input-reminder-time"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Notes (Optional)</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Any specific instructions or details..."
+                  rows={3}
+                  {...field}
+                  data-testid="textarea-reminder-description"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <Button
+          type="submit"
+          disabled={isLoading}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+          data-testid="button-add-reminder"
+        >
+          {isLoading ? 'Saving...' : submitLabel}
+        </Button>
+      </form>
+    </Form>
+  );
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="flex h-screen">
-        {/* Left Sidebar - New Reminder Form */}
-        <div className="w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-6 overflow-y-auto">
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">New Reminder</h2>
-          </div>
-
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              {/* Reminder Title */}
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Reminder Title</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="e.g., Take morning vitamins"
-                        {...field}
-                        data-testid="input-reminder-title"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Category */}
-              <FormField
-                control={form.control}
-                name="reminderType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Category</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger data-testid="select-reminder-type">
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="medication">Medication</SelectItem>
-                        <SelectItem value="appointment">Appointment</SelectItem>
-                        <SelectItem value="checkup">Health Checkup</SelectItem>
-                        <SelectItem value="exercise">Exercise</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Schedule Date */}
-              <FormField
-                control={form.control}
-                name="date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Schedule Date</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="date"
-                        {...field}
-                        data-testid="input-reminder-date"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Time */}
-              <FormField
-                control={form.control}
-                name="time"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Time</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="time"
-                        {...field}
-                        data-testid="input-reminder-time"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Notes */}
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Notes (Optional)</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Any specific instructions or details..."
-                        rows={3}
-                        {...field}
-                        data-testid="textarea-reminder-description"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Create Button */}
-              <Button
-                type="submit"
-                disabled={addReminder.isPending}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                data-testid="button-add-reminder"
-              >
-                {addReminder.isPending ? 'Creating...' : 'Create Reminder'}
-              </Button>
-            </form>
-          </Form>
-
-          {/* Health Overview Stats */}
-          <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Health Overview</h3>
-            {isLoading ? (
-              <div className="space-y-3">
-                <Skeleton className="h-6 w-full" />
-                <Skeleton className="h-6 w-full" />
-                <Skeleton className="h-6 w-full" />
-              </div>
-            ) : error ? (
-              <div className="text-center py-4 text-red-500 dark:text-red-400" data-testid="error-health-overview">
-                Failed to load reminder stats
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Active</span>
-                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200" data-testid="badge-active-count">
-                    {activeReminders.length}
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Today</span>
-                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200" data-testid="badge-today-count">
-                    {todayReminders.length}
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Total</span>
-                  <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200" data-testid="badge-total-count">
-                    {reminders.length}
-                  </Badge>
-                </div>
-              </div>
-            )}
+    <div className="min-h-screen bg-gray-50/30">
+      <div className="container mx-auto px-4 py-6 max-w-7xl">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center space-x-3 mb-2">
+            <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl flex items-center justify-center shadow-sm">
+              <Heart className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Health Reminders</h1>
+              <p className="text-gray-600 mt-1">Stay on top of your wellness with smart reminders</p>
+            </div>
           </div>
         </div>
 
-        {/* Main Content Area */}
-        <div className="flex-1 flex flex-col">
-          {/* Header */}
-          <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-8 py-6">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
-                <Heart className="h-5 w-5 text-red-600" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Health Reminders</h1>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Stay on top of your health with smart reminders for medications, appointments, and wellness activities
-                </p>
-              </div>
-            </div>
+        {/* Main Layout - Responsive Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          {/* Add Reminder Form - Left Sidebar */}
+          <div className="lg:col-span-4 xl:col-span-3">
+            <Card className="shadow-sm border-0 bg-white/80 backdrop-blur-sm">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <Plus className="h-5 w-5" />
+                  New Reminder
+                </CardTitle>
+                <CardDescription className="text-sm text-gray-600">
+                  Set up your health reminders
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ReminderForm
+                  form={form}
+                  onSubmit={onSubmit}
+                  isLoading={addReminder.isPending}
+                  submitLabel="Create Reminder"
+                />
+                
+                {/* Quick Stats */}
+                <div className="mt-6 pt-6 border-t border-gray-100">
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                      <div className="text-2xl font-bold text-blue-600">{activeReminders.length}</div>
+                      <div className="text-xs text-gray-500">Active</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-green-600">{getRemindersByDate(new Date()).length}</div>
+                      <div className="text-xs text-gray-500">Today</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-gray-600">{reminders.length}</div>
+                      <div className="text-xs text-gray-500">Total</div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
-          <div className="flex-1 flex">
-            {/* Calendar Area */}
-            <div className="flex-1 p-8">
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                {/* Calendar Header */}
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+          {/* Calendar and Reminders - Main Content */}
+          <div className="lg:col-span-8 xl:col-span-9 space-y-6">
+            
+            {/* Calendar Card */}
+            <Card className="shadow-sm border-0 bg-white/80 backdrop-blur-sm">
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg font-semibold text-gray-900">
                     {format(currentMonth, 'MMMM yyyy')}
-                  </h2>
-                  <div className="flex items-center space-x-2">
+                  </CardTitle>
+                  <div className="flex items-center space-x-1">
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
                       onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+                      className="h-8 w-8 p-0 hover:bg-gray-100 transition-colors"
                       data-testid="button-prev-month"
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
                       onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+                      className="h-8 w-8 p-0 hover:bg-gray-100 transition-colors"
                       data-testid="button-next-month"
                     >
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
-
-                {/* Calendar */}
+              </CardHeader>
+              <CardContent>
                 <Calendar
                   mode="single"
                   selected={selectedCalendarDate}
-                  onSelect={(date) => {
-                    if (date) {
-                      setSelectedCalendarDate(date);
-                    }
-                  }}
+                  onSelect={(date) => date && setSelectedCalendarDate(date)}
                   month={currentMonth}
                   onMonthChange={setCurrentMonth}
                   data-testid="calendar-main"
                   className="w-full"
                   classNames={{
-                    months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-                    month: "space-y-4",
-                    caption: "flex justify-center pt-1 relative items-center",
+                    months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 w-full",
+                    month: "space-y-4 w-full",
+                    caption: "flex justify-center pt-1 relative items-center mb-4",
                     caption_label: "text-lg font-medium",
                     nav: "space-x-1 flex items-center",
                     nav_button: "h-8 w-8 bg-transparent p-0 hover:bg-gray-100 rounded-md transition-colors",
                     nav_button_previous: "absolute left-1",
                     nav_button_next: "absolute right-1",
                     table: "w-full border-collapse space-y-1",
-                    head_row: "flex",
-                    head_cell: "text-gray-500 rounded-md w-12 font-normal text-sm text-center",
+                    head_row: "flex w-full",
+                    head_cell: "text-gray-500 rounded-md font-normal text-sm text-center flex-1 h-10 flex items-center justify-center",
                     row: "flex w-full mt-2",
-                    cell: "text-center text-sm p-0 relative hover:bg-gray-50 rounded-md transition-colors",
-                    day: "h-12 w-12 p-0 font-normal aria-selected:opacity-100 hover:bg-gray-100 rounded-md transition-colors flex items-center justify-center",
+                    cell: "text-center text-sm p-0 relative hover:bg-gray-50 rounded-lg transition-colors flex-1 h-12 flex items-center justify-center",
+                    day: "h-10 w-10 p-0 font-normal aria-selected:opacity-100 hover:bg-gray-100 rounded-lg transition-colors flex items-center justify-center relative",
                     day_selected: "bg-blue-600 text-white hover:bg-blue-700 hover:text-white focus:bg-blue-600 focus:text-white",
-                    day_today: "bg-gray-100 text-gray-900 font-medium",
+                    day_today: "bg-gray-100 text-gray-900 font-semibold border-2 border-blue-200",
                     day_outside: "text-gray-400 opacity-50",
                     day_disabled: "text-gray-400 opacity-50 cursor-not-allowed",
                     day_hidden: "invisible",
                   }}
-                />
-              </div>
-
-              {/* Your Reminders Section */}
-              <div className="mt-8">
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Your Reminders</h3>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">Upcoming health reminders</p>
-                  
-                  {reminders.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                      No reminders set yet. Create your first reminder using the form on the left sidebar.
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {reminders.slice(0, 5).map((reminder: UIReminder) => (
-                        <div key={reminder.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                              <Pill className="h-4 w-4 text-blue-600" />
-                            </div>
-                            <div>
-                              <p className="font-medium text-gray-900 dark:text-white">{reminder.title}</p>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">
-                                {format(new Date(reminder.scheduledAt), 'MMM d, yyyy at h:mm a')}
-                              </p>
-                            </div>
-                          </div>
-                          <Badge variant={reminder.isActive ? "default" : "secondary"}>
-                            {reminder.isActive ? 'Active' : 'Inactive'}
-                          </Badge>
+                  components={{
+                    Day: ({ date, ...props }) => {
+                      const hasReminderDot = hasReminders(date);
+                      const dominantCategory = getDominantCategory(date);
+                      const dotColor = dominantCategory ? CATEGORY_META[dominantCategory].dotColor : 'bg-gray-500';
+                      
+                      // Filter out non-button props
+                      const { displayMonth, ...buttonProps } = props;
+                      
+                      return (
+                        <div className="relative w-full h-full flex items-center justify-center">
+                          <button {...buttonProps} />
+                          {hasReminderDot && (
+                            <div className={`absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 ${dotColor} rounded-full`} />
+                          )}
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Right Sidebar - Selected Date & Notification Settings */}
-            <div className="w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 p-6">
-              {/* Selected Date */}
-              <div className="mb-8">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-gray-900 dark:text-white">
-                    {format(selectedCalendarDate, 'MMM d')}
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    {selectedDateReminders.length === 0
-                      ? 'No reminders scheduled for this day'
-                      : `${selectedDateReminders.length} reminder${selectedDateReminders.length > 1 ? 's' : ''} scheduled`
+                      );
                     }
+                  }}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Reminders List Card */}
+            <Card className="shadow-sm border-0 bg-white/80 backdrop-blur-sm">
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg font-semibold text-gray-900">
+                      {isSameDay(selectedCalendarDate, new Date()) ? "Today's Reminders" : `Reminders for ${format(selectedCalendarDate, 'MMM d, yyyy')}`}
+                    </CardTitle>
+                    <CardDescription className="text-sm text-gray-600">
+                      {selectedDateReminders.length === 0 
+                        ? 'No reminders scheduled for this day' 
+                        : `${selectedDateReminders.length} reminder${selectedDateReminders.length > 1 ? 's' : ''} scheduled`}
+                    </CardDescription>
                   </div>
                 </div>
-
-                {selectedDateReminders.length > 0 && (
-                  <div className="mt-4 space-y-2">
-                    {selectedDateReminders.map((reminder: Reminder) => (
-                      <div key={reminder.id} className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                        <p className="font-medium text-blue-900 dark:text-blue-100">{reminder.title}</p>
-                        <p className="text-sm text-blue-700 dark:text-blue-300">
-                          {format(new Date(reminder.scheduledAt), 'h:mm a')}
-                        </p>
-                      </div>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <div className="space-y-3">
+                    {[...Array(3)].map((_, i) => (
+                      <Skeleton key={i} className="h-20 w-full rounded-xl" />
                     ))}
                   </div>
+                ) : error ? (
+                  <div className="text-center py-8 text-red-500" data-testid="error-reminders">
+                    Failed to load reminders
+                  </div>
+                ) : selectedDateReminders.length === 0 ? (
+                  <div className="text-center py-12">
+                    <CalendarIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500 mb-2">No reminders for this day</p>
+                    <p className="text-sm text-gray-400">Add a reminder using the form on the left</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {selectedDateReminders.map((reminder) => {
+                      const category = reminder.reminderType as Category;
+                      const meta = CATEGORY_META[category];
+                      const IconComponent = meta.icon;
+
+                      return (
+                        <div
+                          key={reminder.id}
+                          className={`p-4 rounded-xl border border-gray-100 ${meta.bgColor} transition-colors group hover:shadow-md`}
+                          data-testid={`card-reminder-${reminder.id}`}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-start space-x-3 flex-1">
+                              <div className={`w-10 h-10 ${meta.dotColor} rounded-lg flex items-center justify-center text-white shadow-sm`}>
+                                <IconComponent className="h-5 w-5" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-semibold text-gray-900 mb-1" data-testid={`text-reminder-title-${reminder.id}`}>
+                                  {reminder.title}
+                                </h4>
+                                <div className="flex items-center space-x-2 mb-2">
+                                  <Badge variant="outline" className={`text-xs ${meta.textColor} border-current`}>
+                                    {meta.label}
+                                  </Badge>
+                                  <span className="text-sm text-gray-600" data-testid={`text-reminder-time-${reminder.id}`}>
+                                    {format(new Date(reminder.scheduledAt), 'h:mm a')}
+                                  </span>
+                                </div>
+                                {reminder.description && (
+                                  <p className="text-sm text-gray-600 mt-2" data-testid={`text-reminder-description-${reminder.id}`}>
+                                    {reminder.description}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEdit(reminder)}
+                                className="h-8 w-8 p-0 hover:bg-white/80 transition-colors"
+                                data-testid={`button-edit-${reminder.id}`}
+                              >
+                                <Edit2 className="h-4 w-4 text-gray-600" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDelete(reminder.id)}
+                                className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 transition-colors"
+                                data-testid={`button-delete-${reminder.id}`}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 )}
-              </div>
 
-              {/* Notification Settings */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Notification Settings</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Manage how you receive alerts</p>
-                
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-white">Browser Notifications</p>
-                    </div>
-                    <Switch
-                      checked={notificationSettings.browserNotifications}
-                      onCheckedChange={(checked) => handleNotificationToggle('browserNotifications', checked)}
-                      data-testid="switch-browser-notifications"
-                    />
-                  </div>
+                {/* Show all reminders when there are reminders but none for selected date */}
+                {selectedDateReminders.length === 0 && reminders.length > 0 && (
+                  <div className="mt-8 pt-6 border-t border-gray-100">
+                    <h4 className="font-medium text-gray-900 mb-4">All Upcoming Reminders</h4>
+                    <div className="space-y-2">
+                      {reminders.slice(0, 5).map((reminder) => {
+                        const category = reminder.reminderType as Category;
+                        const meta = CATEGORY_META[category];
 
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-white">Sound Alerts</p>
+                        return (
+                          <div
+                            key={reminder.id}
+                            className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+                          >
+                            <div className="flex items-center space-x-3">
+                              <div className={`w-6 h-6 ${meta.dotColor} rounded-full flex items-center justify-center`}>
+                                <div className="w-2 h-2 bg-white rounded-full" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-gray-900 text-sm">{reminder.title}</p>
+                                <p className="text-xs text-gray-600">
+                                  {format(new Date(reminder.scheduledAt), 'MMM d, h:mm a')}
+                                </p>
+                              </div>
+                            </div>
+                            <Badge variant="outline" className={`text-xs ${meta.textColor} border-current`}>
+                              {meta.label}
+                            </Badge>
+                          </div>
+                        );
+                      })}
                     </div>
-                    <Switch
-                      checked={notificationSettings.soundAlerts}
-                      onCheckedChange={(checked) => handleNotificationToggle('soundAlerts', checked)}
-                      data-testid="switch-sound-alerts"
-                    />
                   </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-white">Snooze Option (5-15 minutes)</p>
-                    </div>
-                    <Switch
-                      checked={notificationSettings.snoozeOption}
-                      onCheckedChange={(checked) => handleNotificationToggle('snoozeOption', checked)}
-                      data-testid="switch-snooze-option"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
+
+        {/* Edit Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Edit Reminder</DialogTitle>
+              <DialogDescription>
+                Update your reminder details below.
+              </DialogDescription>
+            </DialogHeader>
+            {editingReminder && (
+              <ReminderForm
+                form={editForm}
+                onSubmit={onEditSubmit}
+                isLoading={updateReminder.isPending}
+                submitLabel="Update Reminder"
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
