@@ -98,7 +98,7 @@ const reminderFormSchema = z.object({
       return false;
     }
     
-    // Convert 12-hour format to 24-hour format for validation
+    // Parse time components safely
     const [hours, minutes] = data.time.split(':');
     const hourNum = parseInt(hours);
     const minuteNum = parseInt(minutes);
@@ -107,26 +107,28 @@ const reminderFormSchema = z.object({
       return false;
     }
     
+    // Convert to 24-hour format
     let hour24 = hourNum;
     if (data.period === 'PM' && hour24 !== 12) hour24 += 12;
     if (data.period === 'AM' && hour24 === 12) hour24 = 0;
     
-    const timeString = `${hour24.toString().padStart(2, '0')}:${minutes}:00`;
-    const scheduledDate = new Date(`${data.date}T${timeString}`);
+    // Create date safely using constructor (same as form submission)
+    const scheduledDate = new Date(`${data.date}T00:00:00`);
+    scheduledDate.setHours(hour24, minuteNum, 0, 0);
     
     if (!isValid(scheduledDate)) {
       return false;
     }
     
-    // Allow times that are at least 1 minute in the future to avoid timezone issues
+    // Allow times that are at least 30 seconds in the future to avoid timezone issues
     const now = new Date();
-    const oneMinuteFromNow = new Date(now.getTime() + 60000); // Add 1 minute buffer
-    return scheduledDate >= oneMinuteFromNow;
+    const bufferTime = new Date(now.getTime() + 30000); // Add 30 second buffer
+    return scheduledDate >= bufferTime;
   } catch (error) {
     return false;
   }
 }, {
-  message: 'Please select a future date and time (at least 1 minute from now)',
+  message: 'Please select a future date and time (at least 30 seconds from now)',
   path: ['date'],
 });
 
@@ -278,8 +280,28 @@ export default function RemindersPage() {
   // Handle form submission
   const onSubmit = (data: ReminderFormData) => {
     try {
-      const time24 = convertTo24Hour(data.time, data.period);
-      const scheduledAt = new Date(`${data.date}T${time24}:00`);
+      // Parse time components safely
+      const [hours, minutes] = data.time.split(':');
+      const hourNum = parseInt(hours);
+      const minuteNum = parseInt(minutes);
+      
+      if (isNaN(hourNum) || isNaN(minuteNum)) {
+        toast({
+          title: "Invalid Time",
+          description: "Please enter a valid time.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Convert to 24-hour format
+      let hour24 = hourNum;
+      if (data.period === 'PM' && hour24 !== 12) hour24 += 12;
+      if (data.period === 'AM' && hour24 === 12) hour24 = 0;
+      
+      // Create date safely using constructor
+      const scheduledAt = new Date(`${data.date}T00:00:00`);
+      scheduledAt.setHours(hour24, minuteNum, 0, 0);
       
       if (!isValid(scheduledAt)) {
         toast({
@@ -315,8 +337,28 @@ export default function RemindersPage() {
     if (!editingReminder) return;
     
     try {
-      const time24 = convertTo24Hour(data.time, data.period);
-      const scheduledAt = new Date(`${data.date}T${time24}:00`);
+      // Parse time components safely
+      const [hours, minutes] = data.time.split(':');
+      const hourNum = parseInt(hours);
+      const minuteNum = parseInt(minutes);
+      
+      if (isNaN(hourNum) || isNaN(minuteNum)) {
+        toast({
+          title: "Invalid Time",
+          description: "Please enter a valid time.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Convert to 24-hour format
+      let hour24 = hourNum;
+      if (data.period === 'PM' && hour24 !== 12) hour24 += 12;
+      if (data.period === 'AM' && hour24 === 12) hour24 = 0;
+      
+      // Create date safely using constructor
+      const scheduledAt = new Date(`${data.date}T00:00:00`);
+      scheduledAt.setHours(hour24, minuteNum, 0, 0);
       
       if (!isValid(scheduledAt)) {
         toast({
@@ -422,7 +464,7 @@ export default function RemindersPage() {
     return isValid(reminderDate) && isAfter(reminderDate, new Date()) && r.isActive;
   });
   
-  // Get filtered reminders based on current filter - show selected date reminders by default
+  // Get filtered reminders based on current filter
   const getFilteredReminders = () => {
     switch (reminderFilter) {
       case 'active':
@@ -433,7 +475,7 @@ export default function RemindersPage() {
         return upcomingReminders;
       case 'all':
       default:
-        return selectedDateReminders; // Show reminders for selected date by default
+        return reminders; // Show all reminders for 'all' filter
     }
   };
   
@@ -546,6 +588,11 @@ export default function RemindersPage() {
       return newSet;
     });
   };
+
+  // Sync form date with selected calendar date
+  useEffect(() => {
+    form.setValue('date', format(selectedCalendarDate, 'yyyy-MM-dd'));
+  }, [selectedCalendarDate, form]);
 
   // Check for due reminders on component mount and set up interval
   useEffect(() => {

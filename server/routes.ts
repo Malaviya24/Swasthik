@@ -658,10 +658,14 @@ Please provide a helpful analysis while including these important disclaimers:
 
   app.post('/api/reminders', async (req, res) => {
     try {
-      const validationResult = insertReminderSchema.safeParse({
+      // Create schema with coerced date to handle ISO strings
+      const reminderSchema = insertReminderSchema.extend({
+        scheduledAt: z.coerce.date()
+      });
+      
+      const validationResult = reminderSchema.safeParse({
         ...req.body,
         userId: 'demo-user-123', // Mock user ID for demo
-        scheduledAt: new Date(req.body.scheduledAt || Date.now())
       });
       
       if (!validationResult.success) {
@@ -683,7 +687,15 @@ Please provide a helpful analysis while including these important disclaimers:
       const { id } = req.params;
       
       // Accept partial reminder data for updates
-      const updateData = req.body;
+      let updateData = req.body;
+      
+      // If scheduledAt is provided, ensure it's converted to a Date
+      if (updateData.scheduledAt) {
+        updateData = {
+          ...updateData,
+          scheduledAt: new Date(updateData.scheduledAt)
+        };
+      }
       
       const updatedReminder = await storage.updateReminder(id, updateData);
       
