@@ -103,7 +103,25 @@ export const healthCenterSchema = z.object({
   distance: z.string(),
   specialties: z.array(z.string()),
   timings: z.string(),
-  emergency: z.boolean()
+  emergency: z.boolean(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional()
+});
+
+export const newsArticleSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  summary: z.string(),
+  content: z.string().optional(),
+  category: z.string(),
+  date: z.string(),
+  source: z.string(),
+  readTime: z.string(),
+  featured: z.boolean(),
+  url: z.string().optional(),
+  imageUrl: z.string().optional(),
+  author: z.string().optional(),
+  publishedAt: z.string().optional()
 });
 
 export const symptomAnalysisSchema = z.object({
@@ -136,6 +154,7 @@ export type HealthRecord = typeof healthRecords.$inferSelect;
 export type InsertHealthRecord = z.infer<typeof insertHealthRecordSchema>;
 export type Medication = z.infer<typeof medicationSchema>;
 export type HealthCenter = z.infer<typeof healthCenterSchema>;
+export type NewsArticle = z.infer<typeof newsArticleSchema>;
 export type SymptomAnalysisRequest = z.infer<typeof symptomAnalysisSchema>;
 export type MedicationSearchRequest = z.infer<typeof medicationSearchSchema>;
 export type HealthCenterSearchRequest = z.infer<typeof healthCenterSearchSchema>;
