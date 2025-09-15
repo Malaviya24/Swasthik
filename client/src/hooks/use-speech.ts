@@ -10,15 +10,38 @@ export function useSpeech() {
 
   const startRecording = useCallback(async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorder.current = new MediaRecorder(stream);
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
+      });
+      
+      // Try to find the best supported audio format
+      let mimeType = 'audio/webm';
+      if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+        mimeType = 'audio/webm;codecs=opus';
+      } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+        mimeType = 'audio/webm';
+      } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+        mimeType = 'audio/mp4';
+      } else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
+        mimeType = 'audio/ogg;codecs=opus';
+      }
+      
+      console.log('Using MIME type for recording:', mimeType);
+      
+      mediaRecorder.current = new MediaRecorder(stream, { mimeType });
       chunks.current = [];
 
       mediaRecorder.current.ondataavailable = (event) => {
-        chunks.current.push(event.data);
+        if (event.data.size > 0) {
+          chunks.current.push(event.data);
+        }
       };
 
-      mediaRecorder.current.start();
+      mediaRecorder.current.start(100); // Collect data every 100ms
       setIsRecording(true);
       setRecordingTime(0);
 
@@ -41,7 +64,27 @@ export function useSpeech() {
 
       mediaRecorder.current.onstop = async () => {
         try {
-          const audioBlob = new Blob(chunks.current, { type: 'audio/webm' });
+          // Try different audio formats for better compatibility
+          let audioBlob: Blob;
+          const mimeType = mediaRecorder.current?.mimeType || 'audio/webm';
+          
+          // Use the actual MIME type from the MediaRecorder
+          if (mimeType.includes('webm')) {
+            audioBlob = new Blob(chunks.current, { type: 'audio/webm' });
+          } else if (mimeType.includes('mp4')) {
+            audioBlob = new Blob(chunks.current, { type: 'audio/mp4' });
+          } else if (mimeType.includes('ogg')) {
+            audioBlob = new Blob(chunks.current, { type: 'audio/ogg' });
+          } else {
+            audioBlob = new Blob(chunks.current, { type: 'audio/webm' });
+          }
+          
+          console.log('Audio blob created:', {
+            size: audioBlob.size,
+            type: audioBlob.type,
+            mimeType: mimeType
+          });
+          
           const transcript = await transcribeAudio(audioBlob);
           
           // Stop timer

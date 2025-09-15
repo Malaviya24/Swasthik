@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { VoiceRecorder } from './VoiceRecorder';
+import { VoiceInput } from './VoiceInput';
 import { analyzeImage } from '@/lib/gemini';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -72,6 +72,11 @@ export function MessageInput({ onSendMessage, disabled }: MessageInputProps) {
 
   return (
     <div className={isMobile ? 'p-3' : 'p-6'}>
+      {/* Voice Recording Bar (when active) */}
+      <div className="mb-4">
+        <VoiceInput onTranscript={handleVoiceTranscript} />
+      </div>
+
       {/* Enhanced Quick Actions */}
       <div className={`flex ${isMobile ? 'space-x-2 mb-3' : 'space-x-3 mb-4'} overflow-x-auto pb-2`}>
         {quickActions.map((action, index) => (
@@ -118,11 +123,6 @@ export function MessageInput({ onSendMessage, disabled }: MessageInputProps) {
                   data-testid="input-image-upload"
                 />
               </label>
-              
-              {/* Voice Recording */}
-              <div className={`${isMobile ? 'p-1.5' : 'p-2'} hover:bg-gray-100 rounded-xl transition-all duration-200 hover:scale-110`}>
-                <VoiceRecorder onTranscript={handleVoiceTranscript} />
-              </div>
             </div>
           </div>
         </div>

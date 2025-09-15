@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { createRequire } from "module";
 import multer from "multer";
+import FormData from "form-data";
 import { 
   insertMessageSchema, 
   insertConversationSchema, 
@@ -487,39 +488,58 @@ Please provide a helpful analysis while including these important disclaimers:
         return res.status(400).json({ error: 'Audio file is required' });
       }
 
+      console.log('Audio file received:', {
+        originalname: audioFile.originalname,
+        mimetype: audioFile.mimetype,
+        size: audioFile.size
+      });
+
       const speechmaticsApiKey = process.env.SPEECHMATICS_API_KEY;
 
       if (speechmaticsApiKey) {
         try {
-          // Convert audio buffer to base64 for Speechmatics API
-          const audioBase64 = audioFile.buffer.toString('base64');
+          // Determine audio format more accurately
+          let audioType = 'webm';
+          if (audioFile.mimetype.includes('wav')) audioType = 'wav';
+          else if (audioFile.mimetype.includes('mp3')) audioType = 'mp3';
+          else if (audioFile.mimetype.includes('webm')) audioType = 'webm';
+          else if (audioFile.mimetype.includes('ogg')) audioType = 'ogg';
           
-          // Create transcription job
+          console.log('Using audio type:', audioType);
+          
+          // Create FormData for multipart/form-data request
+          const formData = new FormData();
+          formData.append('audio', audioFile.buffer, {
+            filename: audioFile.originalname,
+            contentType: audioFile.mimetype
+          });
+          formData.append('transcription_config', JSON.stringify({
+            language: 'en',
+            operating_point: 'enhanced'
+          }));
+          formData.append('audio_format', JSON.stringify({
+            type: audioType
+          }));
+          
+          // Create transcription job with proper multipart format
           const jobResponse = await fetch('https://asr.api.speechmatics.com/v2/jobs', {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${speechmaticsApiKey}`,
-              'Content-Type': 'application/json',
+              ...formData.getHeaders()
             },
-            body: JSON.stringify({
-              transcription_config: {
-                language: 'en',
-                operating_point: 'enhanced',
-                domain: 'medical' // Use medical domain for better health-related transcription
-              },
-              audio_format: {
-                type: audioFile.mimetype.includes('wav') ? 'wav' : 'mp3'
-              },
-              audio_data: audioBase64
-            }),
+            body: formData,
           });
+
+          console.log('Speechmatics API response status:', jobResponse.status);
 
           if (jobResponse.ok) {
             const jobData = await jobResponse.json();
+            console.log('Transcription job created:', jobData.id);
             
             // Poll for results (simplified for demo - in production use webhooks)
             let attempts = 0;
-            const maxAttempts = 30; // Wait up to 30 seconds
+            const maxAttempts = 20; // Wait up to 20 seconds
             
             while (attempts < maxAttempts) {
               await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
@@ -536,30 +556,83 @@ Please provide a helpful analysis while including these important disclaimers:
                 if (resultData.job && resultData.job.status === 'done') {
                   const transcript = resultData.results?.map((r: any) => r.alternatives[0]?.content || '').join(' ') || '';
                   
+                  console.log('Transcription completed successfully');
                   return res.json({ 
                     transcript: transcript.trim(),
                     confidence: resultData.results?.[0]?.alternatives[0]?.confidence || 0.8,
                     source: 'speechmatics'
                   });
                 } else if (resultData.job && resultData.job.status === 'rejected') {
+                  console.log('Transcription job was rejected');
                   throw new Error('Transcription job was rejected');
+                } else if (resultData.job && resultData.job.status === 'running') {
+                  console.log('Transcription job is running, attempt:', attempts + 1);
                 }
+              } else {
+                console.log('Failed to check transcription status:', resultResponse.status);
               }
               
               attempts++;
             }
             
+            console.log('Transcription timeout after', maxAttempts, 'attempts');
             throw new Error('Transcription timeout');
           } else {
-            throw new Error(`Speechmatics API error: ${jobResponse.statusText}`);
+            const errorText = await jobResponse.text();
+            console.log('Speechmatics API error response:', errorText);
+            throw new Error(`Speechmatics API error: ${jobResponse.status} - ${errorText}`);
           }
         } catch (speechmaticsError) {
           console.log('Speechmatics API failed, using fallback:', speechmaticsError);
           // Fall through to demo mode
         }
+      } else {
+        console.log('Speechmatics API key not configured, using fallback');
       }
 
-      // Fallback demo mode with more realistic health-related phrases
+      // Try using Gemini AI for audio transcription as fallback
+      try {
+        console.log('Attempting Gemini AI transcription as fallback...');
+        
+        if (process.env.GEMINI_API_KEY) {
+          const ai = await getAI();
+          const audioBase64 = audioFile.buffer.toString('base64');
+          
+          const prompt = `Please transcribe this audio file. The audio is in ${audioFile.mimetype} format and contains speech that should be converted to text. Return only the transcribed text without any additional formatting or explanation.`;
+          
+          const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: [
+              {
+                parts: [
+                  { text: prompt },
+                  {
+                    inlineData: {
+                      mimeType: audioFile.mimetype,
+                      data: audioBase64
+                    }
+                  }
+                ]
+              }
+            ]
+          });
+          
+          const transcript = response.text?.trim();
+          if (transcript && transcript.length > 0) {
+            console.log('Gemini AI transcription successful:', transcript);
+            return res.json({ 
+              transcript: transcript,
+              confidence: 0.9,
+              source: 'gemini-ai',
+              note: "Transcribed using Gemini AI"
+            });
+          }
+        }
+      } catch (geminiError) {
+        console.log('Gemini AI transcription failed:', geminiError);
+      }
+
+      // Final fallback demo mode with more realistic health-related phrases
       const commonHealthPhrases = [
         "I have been experiencing headache and fever since yesterday",
         "My stomach has been hurting after meals for the past three days",
@@ -579,11 +652,13 @@ Please provide a helpful analysis while including these important disclaimers:
         commonHealthPhrases[Math.floor(Math.random() * 3)] : // Longer phrases for longer audio
         commonHealthPhrases[Math.floor(Math.random() * commonHealthPhrases.length)];
       
+      console.log('Using final fallback transcription:', selectedPhrase);
+      
       res.json({ 
         transcript: selectedPhrase,
         confidence: 0.85,
         source: 'demo',
-        note: "Audio transcription using Speechmatics API"
+        note: "Using fallback transcription - All transcription services unavailable"
       });
     } catch (error) {
       console.error('Audio transcription error:', error);

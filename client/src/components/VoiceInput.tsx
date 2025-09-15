@@ -3,18 +3,20 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 
-interface VoiceRecorderProps {
+interface VoiceInputProps {
   onTranscript: (transcript: string) => void;
 }
 
-export function VoiceRecorder({ onTranscript }: VoiceRecorderProps) {
+export function VoiceInput({ onTranscript }: VoiceInputProps) {
   const { isRecording, recordingTime, startRecording, stopRecording, cancelRecording } = useSpeech();
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   
-  // Force cache bust - ChatGPT Style UI v4.0 - Timestamp: 2024-01-15 02:40:00
-  console.log('🎤 VoiceRecorder: NEW ChatGPT Style UI v4.0 loaded - Timestamp:', new Date().toISOString());
+  // NEW ChatGPT Style UI - This should definitely work!
+  console.log('🎤 VoiceInput: NEW ChatGPT Style UI loaded - Timestamp:', new Date().toISOString());
+  console.log('🎤 VoiceInput: Version 5.0 - FORCE RELOAD');
+  console.log('🎤 VoiceInput: If you see this, the new UI is working!');
 
   const handleStartRecording = async () => {
     try {
@@ -83,16 +85,16 @@ export function VoiceRecorder({ onTranscript }: VoiceRecorderProps) {
     });
   };
 
-  // NEW ChatGPT-style horizontal voice input bar
+  // ChatGPT-style horizontal voice input bar
   if (!isRecording && !isProcessing) {
     return (
       <motion.button
         onClick={handleStartRecording}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition-all duration-300 flex items-center justify-center hover:scale-105 border-2 border-blue-500"
+        className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition-all duration-300 flex items-center justify-center hover:scale-105 border-4 border-green-500"
         data-testid="button-start-recording"
-        title="🎤 NEW ChatGPT Style - Start voice recording"
+        title="🎤 NEW ChatGPT Style v5.0 - Start voice recording"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
       >
