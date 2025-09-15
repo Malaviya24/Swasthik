@@ -1,7 +1,18 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Load environment variables from the root directory
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+
+// Debug environment variables
+console.log('Environment variables loaded:');
+console.log('GEMINI_API_KEY:', process.env.GEMINI_API_KEY ? 'SET' : 'NOT SET');
+console.log('GOOGLE_PLACES_API_KEY:', process.env.GOOGLE_PLACES_API_KEY ? 'SET' : 'NOT SET');
+console.log('NEWSDATA_API_KEY:', process.env.NEWSDATA_API_KEY ? 'SET' : 'NOT SET');
+console.log('SPEECHMATICS_API_KEY:', process.env.SPEECHMATICS_API_KEY ? 'SET' : 'NOT SET');
 
 const app = express();
 app.use(express.json());

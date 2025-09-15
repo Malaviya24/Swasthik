@@ -219,54 +219,117 @@ export default function MedicationsPage() {
 
                     {/* Dosage */}
                     <div>
-                      <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
-                        <i className="fas fa-capsules text-blue-600 mr-2"></i>
-                        Dosage Information
-                      </h3>
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <p className="text-blue-800">{searchMedications.data.dosage}</p>
+                      <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-6 shadow-sm">
+                        <div className="flex items-center mb-4">
+                          <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center mr-3">
+                            <i className="fas fa-capsules text-white text-sm"></i>
+                          </div>
+                          <h3 className="text-lg font-bold text-blue-900">Dosage Information</h3>
+                        </div>
+                        <div className="bg-white rounded-lg p-4 border border-blue-200">
+                          <div className="prose prose-sm max-w-none">
+                            <div dangerouslySetInnerHTML={{ 
+                              __html: searchMedications.data.dosage
+                                .replace(/\\n/g, '<br/>')  // Fix escaped newlines
+                                .replace(/\n/g, '<br/>')   // Regular newlines
+                                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                            }} />
+                          </div>
+                        </div>
                       </div>
                     </div>
 
                     {/* Side Effects */}
                     <div>
-                      <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
-                        <i className="fas fa-exclamation-circle text-orange-600 mr-2"></i>
-                        Possible Side Effects
-                      </h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {searchMedications.data.sideEffects.map((effect: string, index: number) => (
-                          <div key={index} className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                            <span className="text-orange-800">{effect}</span>
+                      <div className="bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-xl p-6 shadow-sm">
+                        <div className="flex items-center mb-4">
+                          <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center mr-3">
+                            <i className="fas fa-exclamation-circle text-white text-sm"></i>
                           </div>
-                        ))}
+                          <h3 className="text-lg font-bold text-orange-900">Possible Side Effects</h3>
+                        </div>
+                        <div className="bg-white rounded-lg p-4 border border-orange-200">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {searchMedications.data.sideEffects.map((effect: string, index: number) => (
+                              <div key={index} className="flex items-center space-x-2 p-2 bg-orange-50 rounded-lg">
+                                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                                <span className="text-orange-800 text-sm">{effect}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </div>
 
                     {/* Precautions */}
                     <div>
-                      <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
-                        <i className="fas fa-shield-alt text-red-600 mr-2"></i>
-                        Precautions
-                      </h3>
-                      <div className="space-y-2">
-                        {searchMedications.data.precautions.map((precaution: string, index: number) => (
-                          <div key={index} className="flex items-start space-x-2">
-                            <i className="fas fa-warning text-red-600 mt-1"></i>
-                            <span className="text-gray-700">{precaution}</span>
+                      <div className="bg-gradient-to-r from-red-50 to-red-100 border border-red-200 rounded-xl p-6 shadow-sm">
+                        <div className="flex items-center mb-4">
+                          <div className="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center mr-3">
+                            <i className="fas fa-shield-alt text-white text-sm"></i>
                           </div>
-                        ))}
+                          <h3 className="text-lg font-bold text-red-900">Important Precautions</h3>
+                        </div>
+                        <div className="bg-white rounded-lg p-4 border border-red-200">
+                          <div className="space-y-3">
+                            {searchMedications.data.precautions.map((precaution: string, index: number) => (
+                              <div key={index} className="flex items-start space-x-3 p-3 bg-red-50 rounded-lg">
+                                <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                  <i className="fas fa-exclamation text-white text-xs"></i>
+                                </div>
+                                <span className="text-red-800 text-sm">{precaution}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Interactions */}
+                    <div>
+                      <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 border border-yellow-200 rounded-xl p-6 shadow-sm">
+                        <div className="flex items-center mb-4">
+                          <div className="w-8 h-8 bg-yellow-500 rounded-lg flex items-center justify-center mr-3">
+                            <i className="fas fa-exclamation-triangle text-white text-sm"></i>
+                          </div>
+                          <h3 className="text-lg font-bold text-yellow-900">Drug Interactions</h3>
+                        </div>
+                        <div className="bg-white rounded-lg p-4 border border-yellow-200">
+                          <div className="space-y-3">
+                            {searchMedications.data.interactions.map((interaction: string, index: number) => (
+                              <div key={index} className="flex items-start space-x-3 p-3 bg-yellow-50 rounded-lg">
+                                <div className="w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                  <i className="fas fa-warning text-white text-xs"></i>
+                                </div>
+                                <span className="text-yellow-800 text-sm">{interaction}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </div>
 
                     {/* Price */}
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                      <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
-                        <i className="fas fa-rupee-sign text-green-600 mr-2"></i>
-                        Approximate Price
-                      </h3>
-                      <p className="text-green-800 text-lg font-medium">{searchMedications.data.price}</p>
-                      <p className="text-sm text-green-700 mt-1">*Prices may vary by location and pharmacy</p>
+                    <div className="bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-xl p-6 shadow-sm">
+                      <div className="flex items-center mb-4">
+                        <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center mr-3">
+                          <i className="fas fa-rupee-sign text-white text-sm"></i>
+                        </div>
+                        <h3 className="text-lg font-bold text-green-900">Approximate Price</h3>
+                      </div>
+                      <div className="bg-white rounded-lg p-4 border border-green-200">
+                        <div className="prose prose-sm max-w-none">
+                          <div dangerouslySetInnerHTML={{ 
+                            __html: searchMedications.data.price.replace(/\n/g, '<br/>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>')
+                          }} />
+                        </div>
+                        <div className="mt-3 pt-3 border-t border-green-200">
+                          <p className="text-xs text-green-700">
+                            <strong>Note:</strong> Prices are approximate and can vary significantly based on brand, manufacturer, pharmacy, location, and discounts.
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ) : (
