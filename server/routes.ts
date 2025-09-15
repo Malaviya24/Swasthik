@@ -335,7 +335,7 @@ Please provide a helpful analysis while including these important disclaimers:
       let usedFallback = false;
       
       // Check if AI is available
-      if (!process.env.GEMINI_API_KEY) {
+      if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'your_gemini_api_key_here') {
         console.log('GEMINI_API_KEY not available, using fallback analysis');
         usedFallback = true;
       } else {
@@ -540,43 +540,102 @@ Please provide a helpful analysis while including these important disclaimers:
 
       Always include disclaimers about consulting healthcare professionals.`;
 
-      const aiClient = await getAI();
-      const response = await aiClient.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: prompt,
-      });
+      // Check if AI is available
+      if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'your_gemini_api_key_here') {
+        // Mock structured response for demo mode
+        const medicationInfo: Medication = {
+          id: `med_${Date.now()}`,
+          name: query,
+          genericName: query.includes('Paracetamol') ? 'Acetaminophen' : query,
+          category: query.toLowerCase().includes('paracetamol') ? 'Pain Relief' : 
+                   query.toLowerCase().includes('aspirin') ? 'Pain Relief' : 
+                   query.toLowerCase().includes('ibuprofen') ? 'Anti-inflammatory' : 'Medicine',
+          description: `${query} is commonly used for treating various health conditions. Always consult a healthcare professional before use.`,
+          dosage: "Follow doctor's prescription. Typical adult dose varies. Never exceed recommended dosage.",
+          sideEffects: [
+            "Nausea or stomach upset",
+            "Dizziness",
+            "Allergic reactions in some people",
+            "Drowsiness"
+          ],
+          precautions: [
+            "Consult doctor before use if pregnant or breastfeeding",
+            "Do not exceed recommended dosage",
+            "Check for allergies before first use",
+            "Inform doctor of other medications you're taking"
+          ],
+          interactions: [
+            "May interact with blood thinners",
+            "Consult doctor about alcohol consumption",
+            "Check with pharmacist about other medications"
+          ],
+          price: "₹50-200 (prices may vary by pharmacy and location)"
+        };
+        return res.json(medicationInfo);
+      }
 
-      // Mock structured response based on query that matches frontend Medication type
-      const medicationInfo: Medication = {
-        id: `med_${Date.now()}`,
-        name: query,
-        genericName: query.includes('Paracetamol') ? 'Acetaminophen' : query,
-        category: query.toLowerCase().includes('paracetamol') ? 'Pain Relief' : 
-                 query.toLowerCase().includes('aspirin') ? 'Pain Relief' : 
-                 query.toLowerCase().includes('ibuprofen') ? 'Anti-inflammatory' : 'Medicine',
-        description: `${query} is commonly used for treating various health conditions. Always consult a healthcare professional before use.`,
-        dosage: "Follow doctor's prescription. Typical adult dose varies. Never exceed recommended dosage.",
-        sideEffects: [
-          "Nausea or stomach upset",
-          "Dizziness",
-          "Allergic reactions in some people",
-          "Drowsiness"
-        ],
-        precautions: [
-          "Consult doctor before use if pregnant or breastfeeding",
-          "Do not exceed recommended dosage",
-          "Check for allergies before first use",
-          "Inform doctor of other medications you're taking"
-        ],
-        interactions: [
-          "May interact with blood thinners",
-          "Consult doctor about alcohol consumption",
-          "Check with pharmacist about other medications"
-        ],
-        price: "₹50-200 (prices may vary by pharmacy and location)"
-      };
+      try {
+        const aiClient = await getAI();
+        const response = await aiClient.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: prompt,
+        });
 
-      res.json(medicationInfo);
+        // Parse AI response and structure it according to Medication type
+        const aiText = response.text || '';
+        
+        // Extract information from AI response using regex patterns
+        const nameMatch = aiText.match(/name[:\s]+([^\n]+)/i);
+        const genericMatch = aiText.match(/genericName[:\s]+([^\n]+)/i);
+        const categoryMatch = aiText.match(/category[:\s]+([^\n]+)/i);
+        const descriptionMatch = aiText.match(/description[:\s]+([^\n]+)/i);
+        const dosageMatch = aiText.match(/dosage[:\s]+([^\n]+)/i);
+        const priceMatch = aiText.match(/price[:\s]+([^\n]+)/i);
+        
+        // Extract arrays for side effects, precautions, interactions
+        const sideEffectsMatch = aiText.match(/sideEffects[:\s]*\[([^\]]+)\]/i);
+        const precautionsMatch = aiText.match(/precautions[:\s]*\[([^\]]+)\]/i);
+        const interactionsMatch = aiText.match(/interactions[:\s]*\[([^\]]+)\]/i);
+        
+        const medicationInfo: Medication = {
+          id: `med_${Date.now()}`,
+          name: nameMatch ? nameMatch[1].trim() : query,
+          genericName: genericMatch ? genericMatch[1].trim() : query,
+          category: categoryMatch ? categoryMatch[1].trim() : 'Medicine',
+          description: descriptionMatch ? descriptionMatch[1].trim() : `${query} is commonly used for treating various health conditions. Always consult a healthcare professional before use.`,
+          dosage: dosageMatch ? dosageMatch[1].trim() : "Follow doctor's prescription. Always consult a healthcare professional before use.",
+          sideEffects: sideEffectsMatch ? 
+            sideEffectsMatch[1].split(',').map(s => s.trim().replace(/['"]/g, '')) : 
+            ["Nausea or stomach upset", "Dizziness", "Allergic reactions in some people"],
+          precautions: precautionsMatch ? 
+            precautionsMatch[1].split(',').map(s => s.trim().replace(/['"]/g, '')) : 
+            ["Consult doctor before use", "Check for allergies", "Inform doctor of other medications"],
+          interactions: interactionsMatch ? 
+            interactionsMatch[1].split(',').map(s => s.trim().replace(/['"]/g, '')) : 
+            ["May interact with other medications", "Consult doctor about alcohol consumption"],
+          price: priceMatch ? priceMatch[1].trim() : "₹50-200 (prices may vary by pharmacy and location)"
+        };
+
+        res.json(medicationInfo);
+      } catch (aiError) {
+        console.log('AI medication search failed, using fallback:', aiError);
+        
+        // Fallback response
+        const medicationInfo: Medication = {
+          id: `med_${Date.now()}`,
+          name: query,
+          genericName: query,
+          category: 'Medicine',
+          description: `${query} is commonly used for treating various health conditions. Always consult a healthcare professional before use.`,
+          dosage: "Follow doctor's prescription. Always consult a healthcare professional before use.",
+          sideEffects: ["Nausea or stomach upset", "Dizziness", "Allergic reactions in some people"],
+          precautions: ["Consult doctor before use", "Check for allergies", "Inform doctor of other medications"],
+          interactions: ["May interact with other medications", "Consult doctor about alcohol consumption"],
+          price: "₹50-200 (prices may vary by pharmacy and location)"
+        };
+        
+        res.json(medicationInfo);
+      }
     } catch (error) {
       console.error('Medication search error:', error);
       res.status(500).json({ error: 'Failed to search medication' });
