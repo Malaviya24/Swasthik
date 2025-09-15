@@ -27,6 +27,8 @@ export default function HealthCentersPage() {
   const [centerType, setCenterType] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [centers, setCenters] = useState<HealthCenter[]>([]);
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [userCoords, setUserCoords] = useState<{lat: number, lng: number} | null>(null);
   const { toast } = useToast();
 
   const searchCenters = useMutation({
@@ -65,6 +67,88 @@ export default function HealthCentersPage() {
       type: centerType,
       search: searchQuery,
     });
+  };
+
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast({
+        title: "Location Not Supported",
+        description: "Your browser doesn't support location services.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGettingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        setUserCoords({ lat: latitude, lng: longitude });
+        
+        try {
+          // Use reverse geocoding to get address
+          const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
+          const data = await response.json();
+          
+          const address = data.locality ? `${data.locality}, ${data.city || data.principalSubdivision}` : 
+                         data.city ? `${data.city}, ${data.principalSubdivision}` : 
+                         `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+          
+          setLocation(address);
+          
+          toast({
+            title: "Location Found",
+            description: `Using your current location: ${address}`,
+          });
+          
+          // Auto-search after getting location
+          searchCenters.mutate({
+            location: address,
+            type: centerType,
+            search: searchQuery,
+          });
+        } catch (error) {
+          console.error('Reverse geocoding failed:', error);
+          const fallbackAddress = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+          setLocation(fallbackAddress);
+          
+          toast({
+            title: "Location Found",
+            description: "Using your coordinates for search.",
+          });
+        }
+        
+        setIsGettingLocation(false);
+      },
+      (error) => {
+        console.error('Geolocation error:', error);
+        setIsGettingLocation(false);
+        
+        let errorMessage = "Unable to get your location.";
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = "Location permission denied. Please enable location access.";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = "Location information unavailable.";
+            break;
+          case error.TIMEOUT:
+            errorMessage = "Location request timed out.";
+            break;
+        }
+        
+        toast({
+          title: "Location Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000, // 5 minutes
+      }
+    );
   };
 
   const getTypeColor = (type: string) => {
@@ -180,13 +264,31 @@ export default function HealthCentersPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Location *
                 </label>
-                <Input
-                  placeholder="Enter your location (e.g., MG Road, Bangalore)"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                  data-testid="input-location"
-                />
+                <div className="flex space-x-2">
+                  <Input
+                    placeholder="Enter your location (e.g., MG Road, Bangalore)"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                    data-testid="input-location"
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    onClick={getCurrentLocation}
+                    disabled={isGettingLocation}
+                    variant="outline"
+                    className="px-3"
+                    data-testid="button-get-location"
+                    title="Get my current location"
+                  >
+                    {isGettingLocation ? (
+                      <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      <i className="fas fa-location-arrow"></i>
+                    )}
+                  </Button>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
