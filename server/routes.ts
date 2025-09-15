@@ -40,10 +40,15 @@ const upload = multer({
     fileSize: 5 * 1024 * 1024, // 5MB limit
   },
   fileFilter: (req, file, cb) => {
-    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'audio/wav', 'audio/mp3', 'audio/mpeg'];
+    const allowedMimeTypes = [
+      'image/jpeg', 'image/png', 'image/webp', 
+      'audio/wav', 'audio/mp3', 'audio/mpeg', 
+      'audio/webm', 'audio/ogg', 'audio/m4a'
+    ];
     if (allowedMimeTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
+      console.log(`Rejected file type: ${file.mimetype}`);
       cb(new Error('Unsupported file type'));
     }
   }
@@ -419,48 +424,6 @@ Please provide a helpful analysis while including these important disclaimers:
 
 
   // Health news endpoint
-  app.get('/api/health-news', async (req, res) => {
-    try {
-      const newsApiKey = process.env.NEWS_API_KEY;
-      
-      if (!newsApiKey) {
-        return res.status(400).json({ error: 'News API key not configured' });
-      }
-
-      // Fetch health-related news from NewsAPI
-      const response = await fetch(
-        `https://newsapi.org/v2/everything?q=health+medicine+healthcare&language=en&sortBy=publishedAt&pageSize=20&apiKey=${newsApiKey}`
-      );
-      
-      if (!response.ok) {
-        throw new Error(`NewsAPI error: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      
-      // Transform NewsAPI articles to our format
-      const articles: NewsArticle[] = data.articles.map((article: any, index: number) => ({
-        id: `news_${Date.now()}_${index}`,
-        title: article.title,
-        summary: article.description || article.content?.substring(0, 200) + '...' || 'No description available',
-        content: article.content,
-        category: categorizeHealthNews(article.title, article.description),
-        date: new Date(article.publishedAt).toISOString().split('T')[0],
-        source: article.source.name,
-        readTime: estimateReadTime(article.content || article.description || ''),
-        featured: index < 3, // First 3 articles are featured
-        url: article.url,
-        imageUrl: article.urlToImage,
-        author: article.author,
-        publishedAt: article.publishedAt
-      }));
-      
-      res.json({ articles });
-    } catch (error) {
-      console.error('Health news error:', error);
-      res.status(500).json({ error: 'Failed to fetch health news' });
-    }
-  });
 
   // Helper functions for news processing
   function categorizeHealthNews(title: string, description: string): string {
@@ -800,59 +763,148 @@ Please provide a helpful analysis while including these important disclaimers:
   // Health news endpoint - fetch real news from NewsAPI
   app.get('/api/health-news', async (req, res) => {
     try {
-      if (!process.env.NEWS_API_KEY) {
-        return res.status(400).json({ error: 'News API key not configured' });
+      // Try to use real NewsAPI if key is available
+      if (process.env.NEWS_API_KEY) {
+        try {
+          const newsApiUrl = `https://newsapi.org/v2/everything?q=health+medicine+medical+wellness+nutrition&language=en&sortBy=publishedAt&pageSize=20&apiKey=${process.env.NEWS_API_KEY}`;
+          
+          const response = await fetch(newsApiUrl);
+          const newsData = await response.json();
+          
+          if (newsData.status === 'ok' && newsData.articles) {
+            // Transform NewsAPI data to match our NewsArticle interface
+            const transformedArticles = newsData.articles
+              .filter((article: any) => article.title && article.description && article.url)
+              .map((article: any, index: number) => {
+                // Determine category based on content
+                let category = 'medicine';
+                const content = `${article.title} ${article.description}`.toLowerCase();
+                if (content.includes('nutrition') || content.includes('diet') || content.includes('food')) category = 'nutrition';
+                else if (content.includes('fitness') || content.includes('exercise') || content.includes('workout')) category = 'fitness';
+                else if (content.includes('mental') || content.includes('psychology') || content.includes('stress')) category = 'mental-health';
+                else if (content.includes('research') || content.includes('study') || content.includes('trial')) category = 'research';
+                else if (content.includes('prevent') || content.includes('vaccine') || content.includes('immunity')) category = 'prevention';
+                
+                // Estimate read time based on description length
+                const wordCount = article.description?.split(' ').length || 100;
+                const readTime = `${Math.max(2, Math.ceil(wordCount / 50))} min read`;
+                
+                return {
+                  id: `news-${Date.now()}-${index}`,
+                  title: article.title,
+                  summary: article.description || 'No description available',
+                  category,
+                  date: new Date(article.publishedAt).toISOString().split('T')[0],
+                  source: article.source?.name || 'Unknown Source',
+                  readTime,
+                  featured: index < 3, // Mark first 3 as featured
+                  url: article.url,
+                  imageUrl: article.urlToImage || undefined,
+                  author: article.author || undefined
+                };
+              });
+            
+            return res.json({ 
+              articles: transformedArticles,
+              totalResults: newsData.totalResults,
+              status: 'ok'
+            });
+          }
+        } catch (apiError) {
+          console.log('NewsAPI failed, falling back to demo data:', apiError);
+        }
       }
 
-      // Fetch health news from NewsAPI
-      const newsApiUrl = `https://newsapi.org/v2/everything?q=health+medicine+medical+wellness+nutrition&language=en&sortBy=publishedAt&pageSize=20&apiKey=${process.env.NEWS_API_KEY}`;
-      
-      const response = await fetch(newsApiUrl);
-      const newsData = await response.json();
-      
-      if (newsData.status === 'ok' && newsData.articles) {
-        // Transform NewsAPI data to match our NewsArticle interface
-        const transformedArticles = newsData.articles
-          .filter((article: any) => article.title && article.description && article.url)
-          .map((article: any, index: number) => {
-            // Determine category based on content
-            let category = 'medicine';
-            const content = `${article.title} ${article.description}`.toLowerCase();
-            if (content.includes('nutrition') || content.includes('diet') || content.includes('food')) category = 'nutrition';
-            else if (content.includes('fitness') || content.includes('exercise') || content.includes('workout')) category = 'fitness';
-            else if (content.includes('mental') || content.includes('psychology') || content.includes('stress')) category = 'mental-health';
-            else if (content.includes('research') || content.includes('study') || content.includes('trial')) category = 'research';
-            else if (content.includes('prevent') || content.includes('vaccine') || content.includes('immunity')) category = 'prevention';
-            
-            // Estimate read time based on description length
-            const wordCount = article.description?.split(' ').length || 100;
-            const readTime = `${Math.max(2, Math.ceil(wordCount / 50))} min read`;
-            
-            return {
-              id: `news-${Date.now()}-${index}`,
-              title: article.title,
-              summary: article.description || 'No description available',
-              category,
-              date: new Date(article.publishedAt).toISOString().split('T')[0],
-              source: article.source?.name || 'Unknown Source',
-              readTime,
-              featured: index < 3, // Mark first 3 as featured
-              url: article.url,
-              imageUrl: article.urlToImage || undefined,
-              author: article.author || undefined
-            };
-          });
-        
-        res.json({ 
-          articles: transformedArticles,
-          totalResults: newsData.totalResults,
-          status: 'ok'
-        });
-      } else {
-        res.status(500).json({ error: 'Failed to fetch news from NewsAPI' });
-      }
+      // Fallback to demo health news data when API key is missing or API fails
+      const demoArticles: NewsArticle[] = [
+        {
+          id: 'demo-1',
+          title: '10 Simple Ways to Boost Your Immune System Naturally',
+          summary: 'Discover evidence-based methods to strengthen your immune system through nutrition, exercise, and lifestyle changes that you can implement today.',
+          category: 'prevention',
+          date: new Date().toISOString().split('T')[0],
+          source: 'Health Today',
+          readTime: '5 min read',
+          featured: true,
+          url: '#',
+          imageUrl: undefined,
+          author: 'Dr. Sarah Johnson'
+        },
+        {
+          id: 'demo-2',
+          title: 'Mental Health: Breaking the Stigma Around Seeking Help',
+          summary: 'Mental health awareness is crucial for overall wellbeing. Learn about resources available and how to support yourself and others.',
+          category: 'mental-health',
+          date: new Date(Date.now() - 86400000).toISOString().split('T')[0],
+          source: 'Mental Wellness Weekly',
+          readTime: '7 min read',
+          featured: true,
+          url: '#',
+          imageUrl: undefined,
+          author: 'Dr. Michael Chen'
+        },
+        {
+          id: 'demo-3',
+          title: 'Revolutionary Cancer Treatment Shows Promise in Clinical Trials',
+          summary: 'New immunotherapy approach demonstrates significant success rates in treating aggressive forms of cancer, offering hope to patients worldwide.',
+          category: 'research',
+          date: new Date(Date.now() - 172800000).toISOString().split('T')[0],
+          source: 'Medical Research Journal',
+          readTime: '6 min read',
+          featured: true,
+          url: '#',
+          imageUrl: undefined,
+          author: 'Dr. Emily Rodriguez'
+        },
+        {
+          id: 'demo-4',
+          title: 'The Science of Sleep: Why Quality Rest is Essential for Health',
+          summary: 'Understanding sleep cycles and their impact on physical and mental health, plus practical tips for better sleep hygiene.',
+          category: 'general',
+          date: new Date(Date.now() - 259200000).toISOString().split('T')[0],
+          source: 'Sleep Science Today',
+          readTime: '8 min read',
+          featured: false,
+          url: '#',
+          imageUrl: undefined,
+          author: 'Dr. James Wilson'
+        },
+        {
+          id: 'demo-5',
+          title: 'Heart-Healthy Diet: Foods That Protect Your Cardiovascular System',
+          summary: 'Nutritionist-approved foods and meal plans that support heart health and reduce the risk of cardiovascular disease.',
+          category: 'nutrition',
+          date: new Date(Date.now() - 345600000).toISOString().split('T')[0],
+          source: 'Nutrition Focus',
+          readTime: '4 min read',
+          featured: false,
+          url: '#',
+          imageUrl: undefined,
+          author: 'Registered Dietitian Lisa Thompson'
+        },
+        {
+          id: 'demo-6',
+          title: 'Exercise and Aging: Staying Active for Longevity',
+          summary: 'Age-appropriate fitness routines and the latest research on how regular exercise can slow aging and improve quality of life.',
+          category: 'fitness',
+          date: new Date(Date.now() - 432000000).toISOString().split('T')[0],
+          source: 'Active Aging Magazine',
+          readTime: '6 min read',
+          featured: false,
+          url: '#',
+          imageUrl: undefined,
+          author: 'Fitness Expert Mark Davis'
+        }
+      ];
+
+      res.json({ 
+        articles: demoArticles,
+        totalResults: demoArticles.length,
+        status: 'demo',
+        message: 'Showing demo health news. Configure NEWS_API_KEY for live updates.'
+      });
     } catch (error) {
-      console.error('Health news API error:', error);
+      console.error('Health news error:', error);
       res.status(500).json({ error: 'Failed to fetch health news' });
     }
   });
