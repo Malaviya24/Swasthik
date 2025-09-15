@@ -652,8 +652,92 @@ Please provide a helpful analysis while including these important disclaimers:
 
       const { location, type, search } = validationResult.data;
 
-      // Mock health centers data with Government-first priority and search functionality
-      let mockHealthCenters: HealthCenter[] = [
+      // Get coordinates for the location using Google Geocoding API
+      const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(location)}&key=${process.env.GOOGLE_PLACES_API_KEY}`;
+      
+      let latitude: number;
+      let longitude: number;
+      
+      try {
+        const geocodeResponse = await fetch(geocodeUrl);
+        const geocodeData = await geocodeResponse.json();
+        
+        if (geocodeData.status === 'OK' && geocodeData.results.length > 0) {
+          const { lat, lng } = geocodeData.results[0].geometry.location;
+          latitude = lat;
+          longitude = lng;
+        } else {
+          // Fallback to default coordinates if geocoding fails
+          latitude = 28.7041; // Delhi coordinates as fallback
+          longitude = 77.1025;
+        }
+      } catch (geocodeError) {
+        console.error('Geocoding error:', geocodeError);
+        latitude = 28.7041;
+        longitude = 77.1025;
+      }
+
+      // Search for health centers using Google Places API
+      const searchQuery = search ? `${search} health center hospital clinic` : 'hospital clinic health center';
+      const placesUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(searchQuery)}&location=${latitude},${longitude}&radius=10000&type=hospital&key=${process.env.GOOGLE_PLACES_API_KEY}`;
+      
+      let healthCenters: HealthCenter[] = [];
+      
+      try {
+        const placesResponse = await fetch(placesUrl);
+        const placesData = await placesResponse.json();
+        
+        if (placesData.status === 'OK' && placesData.results) {
+          healthCenters = placesData.results.slice(0, 20).map((place: any, index: number) => {
+            // Calculate distance (approximate using Haversine formula)
+            const R = 6371; // Radius of Earth in kilometers
+            const dLat = (place.geometry.location.lat - latitude) * Math.PI / 180;
+            const dLon = (place.geometry.location.lng - longitude) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(latitude * Math.PI / 180) * Math.cos(place.geometry.location.lat * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const distance = R * c;
+            
+            // Determine if it's government or private (heuristic based on name)
+            const isGovernment = /government|civil|aiims|pgimer|medical college|district|primary health|community health|phc|chc/i.test(place.name);
+            
+            // Determine facility type
+            let facilityType = 'Hospital';
+            if (/clinic|dispensary/i.test(place.name)) facilityType = 'Clinic';
+            else if (/pharmacy|medical store/i.test(place.name)) facilityType = 'Pharmacy';
+            else if (/diagnostic|lab|pathology/i.test(place.name)) facilityType = 'Diagnostic';
+            
+            return {
+              id: place.place_id,
+              name: place.name,
+              type: facilityType,
+              hospitalType: isGovernment ? 'Government' : 'Private',
+              address: place.formatted_address || 'Address not available',
+              phone: 'Contact info available on-site', // Places API doesn't always provide phone
+              rating: place.rating || 4.0,
+              distance: `${distance.toFixed(1)} km`,
+              specialties: ['General Medicine', 'Emergency Care'], // Default specialties
+              timings: place.opening_hours?.open_now ? '24/7' : 'Please check timings',
+              emergency: place.types?.includes('hospital') || false
+            };
+          });
+          
+          // Sort: Government hospitals first, then by distance
+          healthCenters.sort((a, b) => {
+            if (a.hospitalType === 'Government' && b.hospitalType === 'Private') return -1;
+            if (a.hospitalType === 'Private' && b.hospitalType === 'Government') return 1;
+            return parseFloat(a.distance) - parseFloat(b.distance);
+          });
+        }
+      } catch (placesError) {
+        console.error('Places API error:', placesError);
+      }
+      
+
+      // Filter by type if specified and use healthCenters from Google Places API, or fall back to mock data
+      if (healthCenters.length === 0) {
+        let mockHealthCenters: HealthCenter[] = [
         {
           id: '1',
           name: 'Civil Hospital',
@@ -747,37 +831,47 @@ Please provide a helpful analysis while including these important disclaimers:
         }
       ];
 
-      // Filter by type if specified
-      let filteredCenters = mockHealthCenters;
+        // Filter by type if specified
+        let filteredCenters = mockHealthCenters;
+        if (type && type !== 'all') {
+          filteredCenters = mockHealthCenters.filter(center => 
+            center.type.toLowerCase() === type.toLowerCase()
+          );
+        }
+
+        // Filter by search query if specified (search in name, address, specialties)
+        if (search && search.trim()) {
+          const searchLower = search.toLowerCase().trim();
+          filteredCenters = filteredCenters.filter(center =>
+            center.name.toLowerCase().includes(searchLower) ||
+            center.address.toLowerCase().includes(searchLower) ||
+            center.specialties.some((specialty: string) => specialty.toLowerCase().includes(searchLower))
+          );
+        }
+
+        // Sort by Government first, then Private, then by distance within each group
+        const sortedCenters = filteredCenters.sort((a, b) => {
+          // First priority: Government hospitals come first
+          if (a.hospitalType === 'Government' && b.hospitalType === 'Private') return -1;
+          if (a.hospitalType === 'Private' && b.hospitalType === 'Government') return 1;
+          
+          // Same hospital type, sort by distance
+          const distanceA = parseFloat(a.distance.replace(' km', ''));
+          const distanceB = parseFloat(b.distance.replace(' km', ''));
+          return distanceA - distanceB;
+        });
+
+        healthCenters = sortedCenters;
+      }
+
+      // Filter real Google Places data by type if specified
       if (type && type !== 'all') {
-        filteredCenters = mockHealthCenters.filter(center => 
+        healthCenters = healthCenters.filter(center => 
           center.type.toLowerCase() === type.toLowerCase()
         );
       }
 
-      // Filter by search query if specified (search in name, address, specialties)
-      if (search && search.trim()) {
-        const searchLower = search.toLowerCase().trim();
-        filteredCenters = filteredCenters.filter(center =>
-          center.name.toLowerCase().includes(searchLower) ||
-          center.address.toLowerCase().includes(searchLower) ||
-          center.specialties.some(specialty => specialty.toLowerCase().includes(searchLower))
-        );
-      }
-
-      // Sort by Government first, then Private, then by distance within each group
-      const sortedCenters = filteredCenters.sort((a, b) => {
-        // First priority: Government hospitals come first
-        if (a.hospitalType === 'Government' && b.hospitalType === 'Private') return -1;
-        if (a.hospitalType === 'Private' && b.hospitalType === 'Government') return 1;
-        
-        // Same hospital type, sort by distance
-        const distanceA = parseFloat(a.distance.replace(' km', ''));
-        const distanceB = parseFloat(b.distance.replace(' km', ''));
-        return distanceA - distanceB;
-      });
-
-      res.json(sortedCenters);
+      res.json(healthCenters);
     } catch (error) {
       console.error('Health centers search error:', error);
       res.status(500).json({ error: 'Failed to search health centers' });
