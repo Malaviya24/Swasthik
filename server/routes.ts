@@ -642,6 +642,66 @@ Please provide a helpful analysis while including these important disclaimers:
     }
   });
 
+  // Health news endpoint - fetch real news from NewsAPI
+  app.get('/api/health-news', async (req, res) => {
+    try {
+      if (!process.env.NEWS_API_KEY) {
+        return res.status(400).json({ error: 'News API key not configured' });
+      }
+
+      // Fetch health news from NewsAPI
+      const newsApiUrl = `https://newsapi.org/v2/everything?q=health+medicine+medical+wellness+nutrition&language=en&sortBy=publishedAt&pageSize=20&apiKey=${process.env.NEWS_API_KEY}`;
+      
+      const response = await fetch(newsApiUrl);
+      const newsData = await response.json();
+      
+      if (newsData.status === 'ok' && newsData.articles) {
+        // Transform NewsAPI data to match our NewsArticle interface
+        const transformedArticles = newsData.articles
+          .filter((article: any) => article.title && article.description && article.url)
+          .map((article: any, index: number) => {
+            // Determine category based on content
+            let category = 'medicine';
+            const content = `${article.title} ${article.description}`.toLowerCase();
+            if (content.includes('nutrition') || content.includes('diet') || content.includes('food')) category = 'nutrition';
+            else if (content.includes('fitness') || content.includes('exercise') || content.includes('workout')) category = 'fitness';
+            else if (content.includes('mental') || content.includes('psychology') || content.includes('stress')) category = 'mental-health';
+            else if (content.includes('research') || content.includes('study') || content.includes('trial')) category = 'research';
+            else if (content.includes('prevent') || content.includes('vaccine') || content.includes('immunity')) category = 'prevention';
+            
+            // Estimate read time based on description length
+            const wordCount = article.description?.split(' ').length || 100;
+            const readTime = `${Math.max(2, Math.ceil(wordCount / 50))} min read`;
+            
+            return {
+              id: `news-${Date.now()}-${index}`,
+              title: article.title,
+              summary: article.description || 'No description available',
+              category,
+              date: new Date(article.publishedAt).toISOString().split('T')[0],
+              source: article.source?.name || 'Unknown Source',
+              readTime,
+              featured: index < 3, // Mark first 3 as featured
+              url: article.url,
+              imageUrl: article.urlToImage || undefined,
+              author: article.author || undefined
+            };
+          });
+        
+        res.json({ 
+          articles: transformedArticles,
+          totalResults: newsData.totalResults,
+          status: 'ok'
+        });
+      } else {
+        res.status(500).json({ error: 'Failed to fetch news from NewsAPI' });
+      }
+    } catch (error) {
+      console.error('Health news API error:', error);
+      res.status(500).json({ error: 'Failed to fetch health news' });
+    }
+  });
+
   // Health centers search endpoint
   app.post('/api/health-centers/search', async (req, res) => {
     try {

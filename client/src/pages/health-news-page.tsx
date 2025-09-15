@@ -47,26 +47,37 @@ export default function HealthNewsPage() {
   const fetchHealthNews = async () => {
     setIsLoadingNews(true);
     try {
-      // Using a free health news API or simulating real news data
-      const healthTopics = ['health', 'medicine', 'nutrition', 'fitness', 'mental health', 'covid', 'vaccine', 'wellness'];
-      const randomTopic = healthTopics[Math.floor(Math.random() * healthTopics.length)];
-      
-      // For demo purposes, we'll generate realistic recent health news
-      // In production, you would call a real news API like NewsAPI
-      const mockLiveNews: NewsArticle[] = generateRecentHealthNews();
-      
-      setLiveNews(mockLiveNews);
-      
-      // Show success toast to confirm refresh worked
-      toast({
-        title: "News Refreshed",
-        description: `Successfully updated health news feed with ${mockLiveNews.length} articles.`,
-      });
+      // Try to fetch real health news from API
+      const response = await fetch('/api/health-news');
+      if (response.ok) {
+        const newsData = await response.json();
+        setLiveNews(newsData.articles || []);
+        
+        // Show success toast for real news
+        toast({
+          title: "News Updated",
+          description: `Loaded ${newsData.articles?.length || 0} latest health articles.`,
+        });
+      } else {
+        // Fallback to generated news if API fails
+        const mockLiveNews: NewsArticle[] = generateRecentHealthNews();
+        setLiveNews(mockLiveNews);
+        
+        toast({
+          title: "Demo News Loaded",
+          description: `Showing sample health news articles.`,
+        });
+      }
     } catch (error) {
       console.error('Error fetching health news:', error);
+      
+      // Fallback to generated news on error
+      const mockLiveNews: NewsArticle[] = generateRecentHealthNews();
+      setLiveNews(mockLiveNews);
+      
       toast({
         title: "Error Loading News",
-        description: "Unable to load latest health news. Showing cached content.",
+        description: "Unable to load latest health news. Showing sample content.",
         variant: "destructive",
       });
     } finally {
