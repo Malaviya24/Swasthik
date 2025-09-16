@@ -48,7 +48,8 @@ export default function HealthNewsPage() {
     setIsLoadingNews(true);
     try {
       // Try to fetch real health news from API
-      const response = await fetch('/api/health-news');
+      const apiBaseUrl = import.meta.env.VITE_API_URL || '';
+      const response = await fetch(`${apiBaseUrl}/api/health-news`);
       if (response.ok) {
         const newsData = await response.json();
         setLiveNews(newsData.articles || []);

@@ -30,7 +30,9 @@ export async function sendChatMessage(
   language: string = 'en'
 ): Promise<string> {
   try {
-    const response = await fetch('/api/chat', {
+    // Get API base URL for deployment
+    const apiBaseUrl = import.meta.env.VITE_API_URL || '';
+    const response = await fetch(`${apiBaseUrl}/api/chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -60,7 +62,8 @@ export async function analyzeImage(imageFile: File, question: string = "What do 
     formData.append('image', imageFile);
     formData.append('question', question);
 
-    const response = await fetch('/api/analyze-image', {
+    const apiBaseUrl = import.meta.env.VITE_API_URL || '';
+    const response = await fetch(`${apiBaseUrl}/api/analyze-image`, {
       method: 'POST',
       body: formData,
     });
@@ -79,7 +82,8 @@ export async function analyzeImage(imageFile: File, question: string = "What do 
 
 export async function analyzeSymptoms(symptoms: string[]): Promise<HealthAnalysis> {
   try {
-    const response = await fetch('/api/analyze-symptoms', {
+    const apiBaseUrl = import.meta.env.VITE_API_URL || '';
+    const response = await fetch(`${apiBaseUrl}/api/analyze-symptoms`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -101,7 +105,8 @@ export async function analyzeSymptoms(symptoms: string[]): Promise<HealthAnalysi
 
 export async function getMedicationInfo(medicationName: string): Promise<MedicationInfo> {
   try {
-    const response = await fetch('/api/medication-info', {
+    const apiBaseUrl = import.meta.env.VITE_API_URL || '';
+    const response = await fetch(`${apiBaseUrl}/api/medication-info`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -136,7 +141,8 @@ export interface HealthCenter {
 
 export async function findHealthCenters(latitude: number, longitude: number, radius?: number): Promise<HealthCenter[]> {
   try {
-    const response = await fetch('/api/find-health-centers', {
+    const apiBaseUrl = import.meta.env.VITE_API_URL || '';
+    const response = await fetch(`${apiBaseUrl}/api/find-health-centers`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -161,7 +167,8 @@ export async function transcribeAudio(audioBlob: Blob): Promise<string> {
     const formData = new FormData();
     formData.append('audio', audioBlob, 'recording.webm');
 
-    const response = await fetch('/api/transcribe-audio', {
+    const apiBaseUrl = import.meta.env.VITE_API_URL || '';
+    const response = await fetch(`${apiBaseUrl}/api/transcribe-audio`, {
       method: 'POST',
       body: formData,
     });
