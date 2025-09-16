@@ -812,9 +812,9 @@ Important: Return ONLY valid JSON. No additional text before or after. Always in
         'ayurveda', 'yoga', 'meditation', 'therapy', 'surgery', 'pharmacy', 'drug', 'medication'
       ];
       
-      // Use a simpler, more reliable query for health news
-      const query = 'healthcare OR medical OR medicine OR doctor OR hospital';
-      const newsDataUrl = `https://newsdata.io/api/1/news?apikey=${newsDataApiKey}&q=${encodeURIComponent(query)}&country=in&language=en&size=20`;
+      // Use NewsData.io API with correct parameters
+      const query = 'healthcare medical medicine doctor hospital';
+      const newsDataUrl = `https://newsdata.io/api/1/news?apikey=${newsDataApiKey}&q=${encodeURIComponent(query)}&country=in&language=en`;
       
       console.log('Fetching health news from NewsData.io...');
       console.log('API URL:', newsDataUrl);
@@ -831,6 +831,7 @@ Important: Return ONLY valid JSON. No additional text before or after. Always in
       if (newsData.status === 'success' && newsData.results) {
         // Transform NewsData.io data to match our NewsArticle interface
         const transformedArticles = newsData.results
+          .slice(0, 10) // Limit to 10 articles from API
           .filter((article: any) => {
             // Strict health content filtering
             if (!article.title || !article.description || !article.link) return false;
