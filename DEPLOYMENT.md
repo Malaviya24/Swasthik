@@ -1,6 +1,135 @@
 # Swasthik Health App - Deployment Guide
 
-## 🚀 Deployment Options
+## 🚀 Deployment Strategy: Vercel (Frontend) + Render (Backend)
+
+This guide covers deploying your Swasthik Health App with:
+- **Frontend**: Vercel (React + Vite)
+- **Backend**: Render (Node.js + Express)
+
+## 🔧 Backend Deployment on Render
+
+### Step 1: Create Render Account and Service
+
+1. Go to [render.com](https://render.com) and create an account
+2. Click **"New +"** → **"Web Service"**
+3. Connect your GitHub repository
+4. Configure the service:
+
+**Service Settings:**
+- **Name**: `swasthik-health-backend`
+- **Environment**: `Node`
+- **Build Command**: `npm install && npm run build:backend`
+- **Start Command**: `npm run start:unix`
+- **Instance Type**: Free tier (sufficient for testing)
+
+### Step 2: Set Environment Variables in Render
+
+Go to your service → **Environment** and add:
+
+```bash
+NODE_ENV=production
+PORT=10000
+GEMINI_API_KEY=your_gemini_api_key_from_google_ai_studio
+NEWSDATA_API_KEY=your_newsdata_api_key_here
+LOCATIONIQ_API_KEY=your_locationiq_api_key_here
+SPEECHMATICS_API_KEY=your_speechmatics_key_optional
+```
+
+### Step 3: Deploy Backend
+
+1. Click **"Create Web Service"**
+2. Wait for deployment (usually 2-3 minutes)
+3. Copy your backend URL (e.g., `https://swasthik-health-backend.onrender.com`)
+
+## 🌐 Frontend Deployment on Vercel
+
+### Step 1: Create Vercel Account and Project
+
+1. Go to [vercel.com](https://vercel.com) and create an account
+2. Click **"New Project"** → **"Import Git Repository"**
+3. Select your GitHub repository
+
+### Step 2: Configure Build Settings
+
+**Framework Preset**: `Vite`
+**Root Directory**: `client`
+**Build Command**: `npm run build`
+**Output Directory**: `dist`
+**Install Command**: `npm install`
+
+### Step 3: Set Environment Variables in Vercel
+
+Go to your project → **Settings** → **Environment Variables** and add:
+
+```bash
+VITE_API_URL=https://your-render-backend-url.onrender.com
+```
+
+Replace `your-render-backend-url` with your actual Render backend URL.
+
+### Step 4: Deploy Frontend
+
+1. Click **"Deploy"**
+2. Wait for deployment (usually 1-2 minutes)
+3. Visit your Vercel URL to test the app
+
+## ✅ Testing Your Deployment
+
+### Test These Features:
+
+1. **AI Chatbot** - Should work with real Gemini responses
+2. **Health News** - Should fetch real news (if API key is valid)
+3. **Health Centers** - Location-based search
+4. **Voice Input** - Audio transcription
+5. **Symptom Checker** - AI-powered analysis
+6. **Reminders** - Full CRUD functionality
+
+### Troubleshooting:
+
+If features don't work:
+1. Check **Render logs** for backend errors
+2. Check **Vercel function logs** for frontend issues
+3. Verify environment variables are set correctly
+4. Ensure CORS is properly configured (should work by default)
+
+## 📝 Quick Deployment Checklist
+
+### Backend (Render):
+- ✅ Repository connected
+- ✅ Build command: `npm install && npm run build:backend`
+- ✅ Start command: `npm run start:unix`
+- ✅ Environment variables set (GEMINI_API_KEY, NEWSDATA_API_KEY, etc.)
+- ✅ Service deployed and running
+
+### Frontend (Vercel):
+- ✅ Repository connected
+- ✅ Framework: Vite
+- ✅ Build command: `npm run build:frontend`
+- ✅ Output directory: `dist/public`
+- ✅ Environment variable: `VITE_API_URL` set to Render backend URL
+- ✅ Site deployed and accessible
+
+## 💰 Cost Analysis
+
+**Free Tier (Perfect for testing):**
+- **Render**: Free tier (750 hours/month)
+- **Vercel**: Free tier (100GB bandwidth)
+- **Total**: $0/month
+
+**Production Ready:**
+- **Render**: $7/month (Starter plan)
+- **Vercel**: Free tier sufficient for most apps
+- **Total**: $7/month
+
+## 🔄 Auto-Deployment
+
+Both platforms support automatic deployment:
+- **Push to main branch** → Automatic deployment
+- **Pull requests** → Preview deployments
+
+---
+
+## Alternative Deployment Options
 
 ### Frontend (Vercel) - RECOMMENDED
 **Vercel** is perfect for React/Vite applications with excellent performance and easy deployment.

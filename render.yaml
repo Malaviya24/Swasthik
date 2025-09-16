@@ -2,7 +2,7 @@ services:
   - type: web
     name: swasthik-health-backend
     env: node
-    buildCommand: npm install && npm run build
+    buildCommand: npm install && npm run build:backend
     startCommand: npm run start:unix
     envVars:
       - key: NODE_ENV
