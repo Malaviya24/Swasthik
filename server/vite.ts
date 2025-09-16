@@ -19,7 +19,6 @@ export async function setupVite(app: Express, server: Server) {
   // Only import vite in development
   if (process.env.NODE_ENV === "development") {
     const { createServer: createViteServer, createLogger } = await import("vite");
-    const viteConfig = await import("../vite.config");
     const viteLogger = createLogger();
 
     const serverOptions = {
@@ -28,9 +27,15 @@ export async function setupVite(app: Express, server: Server) {
       allowedHosts: true as const,
     };
 
+    // Create a minimal vite config for development
+    const viteConfig = {
+      root: path.resolve(import.meta.dirname, "..", "client"),
+      server: serverOptions,
+      appType: "custom" as const,
+    };
+
     const vite = await createViteServer({
-      ...viteConfig.default,
-      configFile: false,
+      ...viteConfig,
       customLogger: {
         ...viteLogger,
         error: (msg, options) => {
@@ -38,8 +43,6 @@ export async function setupVite(app: Express, server: Server) {
           process.exit(1);
         },
       },
-      server: serverOptions,
-      appType: "custom",
     });
 
     app.use(vite.middlewares);
