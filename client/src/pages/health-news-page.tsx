@@ -222,11 +222,27 @@ export default function HealthNewsPage() {
   // Use live news if available, otherwise fall back to sample news
   const allNews = liveNews.length > 0 ? liveNews : [];
 
+  // Enhanced filtering with better search and category matching
   const filteredNews = allNews.filter(article => {
     const matchesCategory = selectedCategory === 'all' || article.category === selectedCategory;
-    const matchesSearch = article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         article.summary.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Enhanced search functionality
+    const searchLower = searchTerm.toLowerCase();
+    const matchesSearch = searchTerm === '' || 
+      article.title.toLowerCase().includes(searchLower) ||
+      article.summary.toLowerCase().includes(searchLower) ||
+      article.author?.toLowerCase().includes(searchLower) ||
+      article.source.toLowerCase().includes(searchLower) ||
+      article.category.toLowerCase().includes(searchLower);
+    
     return matchesCategory && matchesSearch;
+  });
+
+  // Sort news by featured first, then by date
+  const sortedNews = filteredNews.sort((a, b) => {
+    if (a.featured && !b.featured) return -1;
+    if (!a.featured && b.featured) return 1;
+    return new Date(b.date).getTime() - new Date(a.date).getTime();
   });
 
   const featuredNews = allNews.filter(article => article.featured);
@@ -413,7 +429,8 @@ export default function HealthNewsPage() {
               {selectedCategory === 'all' ? 'Latest News' : `${categories.find(c => c.id === selectedCategory)?.name} News`}
             </h2>
             <div className="text-sm text-gray-500">
-              {filteredNews.length} article{filteredNews.length !== 1 ? 's' : ''} found
+              {sortedNews.length} article{sortedNews.length !== 1 ? 's' : ''} found
+              {searchTerm && ` for "${searchTerm}"`}
             </div>
           </div>
 
@@ -444,9 +461,9 @@ export default function HealthNewsPage() {
                 </Card>
               ))}
             </div>
-          ) : filteredNews.length > 0 ? (
+          ) : sortedNews.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredNews.map((article) => (
+              {sortedNews.map((article) => (
                 <Card key={article.id} className="hover:shadow-lg transition-shadow" data-testid={`news-article-${article.id}`}>
                   <CardHeader>
                     <div className="flex items-center justify-between mb-2">
@@ -511,9 +528,12 @@ export default function HealthNewsPage() {
             <Card>
               <CardContent className="text-center py-12">
                 <div className="text-4xl text-gray-400 mb-4">🔍</div>
-                <p className="text-gray-500 mb-2">No news articles found</p>
+                <p className="text-gray-500 mb-2">No health articles found</p>
                 <p className="text-sm text-gray-400">
-                  Try adjusting your search terms or selecting a different category
+                  {searchTerm 
+                    ? `No articles found for "${searchTerm}". Try different search terms or browse all categories.`
+                    : `No articles found in ${selectedCategory === 'all' ? 'all categories' : categories.find(c => c.id === selectedCategory)?.name}. Try selecting a different category.`
+                  }
                 </p>
                 <Button 
                   onClick={fetchHealthNews} 
