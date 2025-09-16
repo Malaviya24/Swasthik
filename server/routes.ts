@@ -528,7 +528,7 @@ Please provide a helpful analysis while including these important disclaimers:
               'Authorization': `Bearer ${speechmaticsApiKey}`,
               ...formData.getHeaders()
             },
-            body: formData,
+            body: formData as any,
           });
 
           console.log('Speechmatics API response status:', jobResponse.status);
