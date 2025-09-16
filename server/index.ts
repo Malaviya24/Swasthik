@@ -96,7 +96,22 @@ app.use((req, res, next) => {
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
-    serveStatic(app);
+    // In production, we only serve API routes
+    // Frontend is served by Vercel
+    app.get("*", (req, res) => {
+      res.status(404).json({ 
+        message: "API endpoint not found. This is a backend API server.",
+        availableEndpoints: [
+          "GET /api/health",
+          "POST /api/chat",
+          "POST /api/analyze-symptoms",
+          "GET /api/medications/search",
+          "POST /api/health-centers/search",
+          "GET /api/reminders",
+          "POST /api/reminders"
+        ]
+      });
+    });
   }
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
