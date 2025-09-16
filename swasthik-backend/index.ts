@@ -161,5 +161,16 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   console.error('Error:', err);
 });
 
+// Start the server (only if not in Vercel environment)
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  const PORT = process.env.PORT || 3001; // Use different port to avoid conflict
+  
+  app.listen(PORT, () => {
+    console.log(`🚀 Swasthik Backend Server running on port ${PORT}`);
+    console.log(`📊 Health check: http://localhost:${PORT}/health`);
+    console.log(`💬 Chat API: http://localhost:${PORT}/api/chat`);
+  });
+}
+
 // Export the app for Vercel
 export default app;

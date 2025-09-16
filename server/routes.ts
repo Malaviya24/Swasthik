@@ -68,38 +68,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check if API key is available
       if (!process.env.GEMINI_API_KEY) {
-        // Provide helpful responses based on user input
+        // Detect user's language from their message
+        const detectLanguage = (text: string) => {
+          const hindiRegex = /[\u0900-\u097F]/;
+          const bengaliRegex = /[\u0980-\u09FF]/;
+          const gujaratiRegex = /[\u0A80-\u0AFF]/;
+          const tamilRegex = /[\u0B80-\u0BFF]/;
+          const teluguRegex = /[\u0C00-\u0C7F]/;
+          const odiaRegex = /[\u0B00-\u0B7F]/;
+          
+          if (hindiRegex.test(text)) return 'Hindi';
+          if (bengaliRegex.test(text)) return 'Bengali';
+          if (gujaratiRegex.test(text)) return 'Gujarati';
+          if (tamilRegex.test(text)) return 'Tamil';
+          if (teluguRegex.test(text)) return 'Telugu';
+          if (odiaRegex.test(text)) return 'Odia';
+          return 'English';
+        };
+
+        const userLanguage = detectLanguage(message);
         const userMessage = message.toLowerCase();
         
-        if (userMessage.includes('hello') || userMessage.includes('hi') || userMessage.includes('namaste')) {
+        if (userMessage.includes('hello') || userMessage.includes('hi') || userMessage.includes('namaste') || userMessage.includes('नमस्ते')) {
+          const responses: Record<string, string> = {
+            English: `🙏 Namaste! I'm Swasthik AI, your health assistant. I can help with health questions. What's on your mind today?`,
+            Hindi: `🙏 नमस्ते! मैं स्वास्थिक AI हूं, आपकी स्वास्थ्य सहायक। मैं स्वास्थ्य संबंधी सवालों में मदद कर सकता हूं। आज आप क्या जानना चाहते हैं?`,
+            Bengali: `🙏 নমস্কার! আমি স্বাস্থিক AI, আপনার স্বাস্থ্য সহায়ক। আমি স্বাস্থ্য প্রশ্নে সাহায্য করতে পারি। আজ আপনি কী জানতে চান?`,
+            Gujarati: `🙏 નમસ્તે! હું સ્વસ્થિક AI છું, તમારી સ્વાસ્થ્ય સહાયક। હું સ્વાસ્થ્ય પ્રશ્નોમાં મદદ કરી શકું છું। આજે તમે શું જાણવા માંગો છો?`,
+            Tamil: `🙏 வணக்கம்! நான் சுவஸ்திக் AI, உங்கள் சுகாதார உதவியாளர்। நான் சுகாதார கேள்விகளில் உதவ முடியும்। இன்று நீங்கள் என்ன தெரிந்து கொள்ள விரும்புகிறீர்கள்?`,
+            Telugu: `🙏 నమస్కారం! నేను స్వస్థిక్ AI, మీ ఆరోగ్య సహాయకుడు। నేను ఆరోగ్య ప్రశ్నలలో సహాయపడగలను। ఈరోజు మీరు ఏమి తెలుసుకోవాలనుకుంటున్నారు?`,
+            Marathi: `🙏 नमस्कार! मी स्वास्थिक AI आहे, तुमची आरोग्य सहायक। मी आरोग्य प्रश्नांमध्ये मदत करू शकतो। आज तुम्हाला काय माहिती हवे आहे?`,
+            Odia: `🙏 ନମସ୍କାର! ମୁଁ ସ୍ଵସ୍ଥିକ AI, ତୁମର ସ୍ୱାସ୍ଥ୍ୟ ସହାୟକ। ମୁଁ ସ୍ୱାସ୍ଥ୍ୟ ପ୍ରଶ୍ନରେ ସାହାଯ୍ୟ କରିପାରିବି। ଆଜି ତୁମେ କଣ ଜାଣିବାକୁ ଚାହୁଁଛ?`
+          };
+          
           return res.json({ 
-            response: `🙏 Namaste! I'm Swasthik, your AI healthcare assistant. 
-
-I'm your AI healthcare assistant. I can help you with health information and guidance.
-
-What health concern can I help you with today?` 
+            response: responses[userLanguage] || responses.English
           });
         }
         
-        if (userMessage.includes('fever') || userMessage.includes('temperature')) {
+        if (userMessage.includes('fever') || userMessage.includes('temperature') || userMessage.includes('बुखार') || userMessage.includes('ज्वर')) {
+          const responses: Record<string, string> = {
+            English: `🌡️ I understand you have fever. How long have you had it and what's your temperature? Rest well, stay hydrated, and take paracetamol if needed. See a doctor if it's above 103°F or lasts more than 3 days.`,
+            Hindi: `🌡️ मैं समझ गया कि आपको बुखार है। कितने समय से है और तापमान क्या है? आराम करें, पानी पिएं, और जरूरत हो तो पैरासिटामोल लें। 103°F से ऊपर या 3 दिन से ज्यादा रहे तो डॉक्टर को दिखाएं।`
+          };
+          
           return res.json({ 
-            response: `🌡️ **Fever Management (Demo Response)**
-
-**General Guidelines:**
-• Rest and stay hydrated
-• Monitor temperature regularly
-• Use cool compresses
-• Take paracetamol if needed (follow dosage instructions)
-
-**When to seek medical help:**
-• Fever above 103°F (39.4°C)
-• Fever lasting more than 3 days
-• Severe headache or neck stiffness
-• Difficulty breathing
-
-⚠️ **Important**: This is general information only. Always consult a healthcare professional for proper diagnosis and treatment.
-
-*To enable full AI chat with personalized responses, get a Google Gemini API key from https://aistudio.google.com/*` 
+            response: responses[userLanguage] || responses.English
           });
         }
         
@@ -186,56 +200,188 @@ What health concern can I help you with today?`
         }
         
         // Default demo response
+        const responses: Record<string, string> = {
+          English: `🙏 Namaste! I'm Swasthik AI, your health assistant. I can help with health questions. What's on your mind today?`,
+          Hindi: `🙏 नमस्ते! मैं स्वास्थिक AI हूं, आपकी स्वास्थ्य सहायक। मैं स्वास्थ्य संबंधी सवालों में मदद कर सकता हूं। आज आप क्या जानना चाहते हैं?`
+        };
+        
         return res.json({ 
-          response: `🙏 Namaste! I'm Swasthik, your AI healthcare assistant. 
-
-I can help you with health information about:
-
-• **Fever & Temperature** - Ask about fever management
-• **Headaches** - Ask about headache relief
-• **Cough & Cold** - Ask about respiratory symptoms  
-• **Stomach Issues** - Ask about digestive problems
-• **General Health** - Ask about wellness tips
-
-**To enable full AI chat with personalized responses:**
-1. Get a Google Gemini API key from https://aistudio.google.com/
-2. Set the GEMINI_API_KEY environment variable
-3. Restart the server
-
-What health concern can I help you with today?` 
+          response: responses[userLanguage] || responses.English
         });
       }
 
-      // Build conversation context
-      let conversationContext = `You are Swasthik, an AI healthcare assistant designed for rural and semi-urban communities. 
-      
-Your key responsibilities:
-- Provide accurate, helpful health information in simple language
-- Always include medical disclaimers when giving health advice
-- Suggest consulting healthcare professionals for serious concerns
-- Be culturally sensitive and respectful
-- Respond in ${language === 'en' ? 'English' : 'the requested language'}
-- Focus on preventive healthcare and general wellness
+      // Detect user's language from their message
+      const detectLanguage = (text: string) => {
+        const hindiRegex = /[\u0900-\u097F]/;
+        const bengaliRegex = /[\u0980-\u09FF]/;
+        const gujaratiRegex = /[\u0A80-\u0AFF]/;
+        const tamilRegex = /[\u0B80-\u0BFF]/;
+        const teluguRegex = /[\u0C00-\u0C7F]/;
+        const marathiRegex = /[\u0900-\u097F]/; // Similar to Hindi
+        const odiaRegex = /[\u0B00-\u0B7F]/;
+        
+        if (hindiRegex.test(text)) return 'Hindi';
+        if (bengaliRegex.test(text)) return 'Bengali';
+        if (gujaratiRegex.test(text)) return 'Gujarati';
+        if (tamilRegex.test(text)) return 'Tamil';
+        if (teluguRegex.test(text)) return 'Telugu';
+        if (odiaRegex.test(text)) return 'Odia';
+        return 'English';
+      };
 
-Important guidelines:
-- Never provide specific medical diagnoses
-- Always recommend consulting qualified healthcare professionals
-- Include appropriate disclaimers about the limitations of AI health advice
-- Be empathetic and supportive
-- Provide practical, actionable advice when appropriate
+      const userLanguage = detectLanguage(message);
+      const languageInstruction = userLanguage === 'English' 
+        ? 'Respond in English' 
+        : `Respond in ${userLanguage} language. Use the same script and writing system as the user's question.`;
+
+      // Build conversation context
+      const SYSTEM_PROMPT = `
+You are "Dr. Swasthik", an AI Health Assistant for Indian users. 
+Behave like a professional doctor: empathetic, clear, structured, and safety-first.
+
+## PROFESSIONAL IDENTITY & APPROACH
+- **"Dr. Swasthik"** - Strong professional medical identity with authoritative yet caring persona
+- **Medical expertise persona** - Present yourself as a knowledgeable healthcare professional
+- **Structured approach** - Follow proper medical protocols and assessment procedures
+- **Safety-first mindset** - Always prioritize patient safety above all else
+- **Professional medical protocols** - Use systematic approach like real doctors
+- **Confident yet humble** - Show expertise while acknowledging limitations
+- **Cultural sensitivity** - Understand Indian healthcare context and patient needs
+
+### 🏥 **Stronger Professional Identity**
+- **Authoritative yet caring persona** - Command respect while showing genuine concern
+- **Medical authority** - Speak with confidence backed by medical knowledge
+- **Patient-centered approach** - Always prioritize patient well-being and comfort
+- **Professional demeanor** - Maintain medical professionalism in all interactions
+- **Trust-building** - Establish credibility through consistent, reliable responses
+
+## DETAILED MEDICAL ASSESSMENT
+- Always collect comprehensive details: onset, duration, severity (0–10), associated symptoms, medical history, current medications, allergies
+- Structured triage process:
+  • General causes and possible conditions
+  • Home care options and self-management
+  • Red flags and warning signs to watch for
+  • Clear guidance on when to see a doctor immediately
+- For emergencies: say clearly: "⚠️ Please seek immediate medical attention (call 108 or go to the nearest hospital)."
+- Use Indian healthcare context (OPD, chemist, government/private hospital, local medical terminology)
+
+## ENHANCED COMMUNICATION STYLE
+- **Empathetic tone** - Caring and understanding like a real doctor
+- **Clear structure** - Organized, easy-to-follow responses with proper formatting
+- **Actionable advice** - Provide practical, step-by-step guidance users can implement
+- **Follow-up questions** - Ask relevant, targeted questions to better understand the situation
+- **Professional documentation** - Always end with a "Doctor's Summary Note" in bullet form
+
+### 🎯 **Professional Communication Standards**
+- **Detailed responses** - Provide comprehensive, thorough answers (minimum 6-8 paragraphs, 500+ words)
+- **Professional respect** - Address users with respect without casual terms like "dear"
+- **Indian context** - Use appropriate Indian healthcare terminology and cultural sensitivity
+- **Structured format** - Use clear headings, bullet points, and organized sections
+- **Complete information** - Cover all aspects of the health concern thoroughly
+- **No casual language** - Maintain professional medical communication standards
+- **Extensive explanations** - Include multiple examples, scenarios, and detailed medical reasoning
+- **Comprehensive coverage** - Address every possible aspect of the health concern
+
+## IMAGE ANALYSIS CAPABILITIES
+When IMAGE is uploaded, provide comprehensive medical analysis following professional medical standards:
+
+### 📋 **Prescription Analysis**
+- **Extract medicine details**: Names, doses, frequency, duration, route of administration
+- **For each medicine, explain**:
+  • What symptom/condition it is used for
+  • How it works in the body (mechanism of action)
+  • Common side effects and precautions
+  • Usual usage instructions (before/after food, day/night timing)
+  • Drug interactions to be aware of
+  • Storage requirements and expiry information
+
+### 🧪 **Lab Report Interpretation**
+- **Parameter analysis**: Explain each test parameter in detail
+- **Normal ranges**: Provide reference values for age/gender
+- **Abnormal values**: Highlight and explain significance
+- **Clinical correlation**: Connect lab findings to possible conditions
+- **Follow-up recommendations**: Suggest when to repeat tests
+- **Critical values**: Identify values requiring immediate attention
+
+### 🏥 **Scan/X-ray Summaries**
+- **Plain language explanation**: Translate medical jargon into understandable terms
+- **Key findings**: Highlight important observations
+- **Clinical significance**: Explain what findings mean for patient health
+- **Comparison notes**: If previous scans available, note changes
+- **Recommendations**: Suggest next steps or follow-up needed
+
+### 🔍 **Smart Quality Control**
+- **Quality assessment**: Evaluate image clarity, lighting, and completeness
+- **Missing information**: Identify what additional details would be helpful
+- **Politely request**: Ask for clearer photos or manual entry when needed
+- **Alternative methods**: Suggest other ways to get required information
+- **Technical guidance**: Provide tips for better image capture
+
+### 🏥 **Professional Medical Standards**
+- **Structured analysis**: Follow systematic approach for each image type
+- **Evidence-based interpretation**: Base analysis on medical knowledge and standards
+- **Comprehensive coverage**: Cover prescriptions, lab reports, scans, and X-rays in detail
+- **Clinical reasoning**: Explain the logic behind interpretations
+- **Professional documentation**: Maintain medical record standards in responses
+
+## SAFETY & PROFESSIONAL BOUNDARIES
+- Never prescribe specific medications
+- Always remind: "This is general information. Please follow your doctor's advice strictly."
+- Know when to refer to real medical professionals
+- Maintain appropriate medical disclaimers
+
+IMPORTANT: ${languageInstruction}
+
+## RESPONSE REQUIREMENTS
+- **Length**: Provide VERY detailed, comprehensive responses (minimum 6-8 paragraphs, 500+ words)
+- **Professional language**: Use respectful, medical terminology without casual terms
+- **Indian context**: Address users appropriately for Indian healthcare system
+- **Structure**: Use clear headings, bullet points, and organized sections
+- **Completeness**: Cover all aspects of the health concern thoroughly
+- **No casual terms**: Avoid "dear", "sweetie", or other informal language
+- **Extensive detail**: Include multiple examples, scenarios, and comprehensive explanations
+- **In-depth analysis**: Provide thorough medical reasoning and detailed guidance
+`;
+
+      let conversationContext = `${SYSTEM_PROMPT}
 
 Previous conversation:
 ${history.slice(-5).map((msg: any) => `${msg.role}: ${msg.content}`).join('\n')}
 
 User's current message: ${message}
 
-Respond helpfully and safely:`;
+Respond with a VERY comprehensive, detailed, and professional medical assessment in ${userLanguage}. Your response must be extensive (minimum 6-8 paragraphs, 500+ words) with thorough explanations, multiple examples, and complete coverage of all aspects of the health concern:`;
 
       const aiClient = await getAI();
-      const response = await aiClient.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: conversationContext,
-      });
+      
+      // Retry logic for API overload errors
+      let response;
+      let retryCount = 0;
+      const maxRetries = 3;
+      
+      while (retryCount < maxRetries) {
+        try {
+          response = await aiClient.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: conversationContext,
+          });
+          break; // Success, exit retry loop
+        } catch (apiError: any) {
+          retryCount++;
+          console.log(`API attempt ${retryCount} failed:`, apiError.message);
+          
+          // If it's a 503 error (overloaded) and we have retries left, wait and try again
+          if (apiError.status === 503 && retryCount < maxRetries) {
+            const waitTime = retryCount * 2000; // 2s, 4s, 6s
+            console.log(`Waiting ${waitTime}ms before retry ${retryCount + 1}...`);
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+            continue;
+          }
+          
+          // If it's not a 503 error or we've exhausted retries, throw the error
+          throw apiError;
+        }
+      }
 
       res.json({ response: response.text || "I apologize, but I couldn't process your request. Please try again." });
     } catch (error: any) {
@@ -253,6 +399,23 @@ I'm your AI healthcare assistant. For full functionality, please ensure all API 
 3. Restart the server
 
 For now, I can help you with basic health information and guidance. What would you like to know?` 
+        });
+      }
+      
+      // Handle API overload or other errors with a helpful fallback
+      if (error.status === 503 || error.message?.includes('overloaded')) {
+        return res.json({ 
+          response: `🙏 Namaste! I'm Swasthik AI, your health assistant. 
+
+I'm experiencing high demand right now. Let me help you with basic health guidance:
+
+• For fever: Rest, stay hydrated, take paracetamol if needed
+• For headache: Rest in a quiet place, apply cold compress
+• For cold/cough: Stay hydrated, get plenty of rest
+
+For specific concerns, please try again in a few minutes or consult a doctor.
+
+What health question can I help you with?` 
         });
       }
       
@@ -287,14 +450,47 @@ Please provide a helpful analysis while including these important disclaimers:
       ];
 
       const aiClient = await getAI();
-      const response = await aiClient.models.generateContent({
-        model: "gemini-2.5-pro",
-        contents: contents,
-      });
+      
+      // Retry logic for API overload errors
+      let response;
+      let retryCount = 0;
+      const maxRetries = 3;
+      
+      while (retryCount < maxRetries) {
+        try {
+          response = await aiClient.models.generateContent({
+            model: "gemini-2.5-pro",
+            contents: contents,
+          });
+          break; // Success, exit retry loop
+        } catch (apiError: any) {
+          retryCount++;
+          console.log(`Image analysis API attempt ${retryCount} failed:`, apiError.message);
+          
+          // If it's a 503 error (overloaded) and we have retries left, wait and try again
+          if (apiError.status === 503 && retryCount < maxRetries) {
+            const waitTime = retryCount * 2000; // 2s, 4s, 6s
+            console.log(`Waiting ${waitTime}ms before retry ${retryCount + 1}...`);
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+            continue;
+          }
+          
+          // If it's not a 503 error or we've exhausted retries, throw the error
+          throw apiError;
+        }
+      }
 
       res.json({ analysis: response.text || "Unable to analyze the image. Please consult a healthcare professional." });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Image analysis error:', error);
+      
+      // Handle API overload with fallback
+      if (error.status === 503 || error.message?.includes('overloaded')) {
+        return res.json({ 
+          analysis: "I'm experiencing high demand right now and cannot analyze the image. Please try again in a few minutes or consult a healthcare professional for immediate assistance." 
+        });
+      }
+      
       res.status(500).json({ error: 'Failed to analyze image' });
     }
   });
@@ -347,10 +543,35 @@ Please provide a helpful analysis while including these important disclaimers:
       } else {
         try {
           const aiClient = await getAI();
-          const response = await aiClient.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: prompt,
-          });
+          
+          // Retry logic for API overload errors
+          let response;
+          let retryCount = 0;
+          const maxRetries = 3;
+          
+          while (retryCount < maxRetries) {
+            try {
+              response = await aiClient.models.generateContent({
+                model: "gemini-2.5-flash",
+                contents: prompt,
+              });
+              break; // Success, exit retry loop
+            } catch (apiError: any) {
+              retryCount++;
+              console.log(`Symptom analysis API attempt ${retryCount} failed:`, apiError.message);
+              
+              // If it's a 503 error (overloaded) and we have retries left, wait and try again
+              if (apiError.status === 503 && retryCount < maxRetries) {
+                const waitTime = retryCount * 2000; // 2s, 4s, 6s
+                console.log(`Waiting ${waitTime}ms before retry ${retryCount + 1}...`);
+                await new Promise(resolve => setTimeout(resolve, waitTime));
+                continue;
+              }
+              
+              // If it's not a 503 error or we've exhausted retries, throw the error
+              throw apiError;
+            }
+          }
 
           // Try to parse the AI response as JSON
           const aiText = response.text || '';
@@ -361,8 +582,17 @@ Please provide a helpful analysis while including these important disclaimers:
           } else {
             throw new Error('No JSON found in AI response');
           }
-        } catch (aiError) {
+        } catch (aiError: any) {
           console.error('AI analysis failed:', aiError);
+          
+          // Handle API overload with fallback
+          if (aiError.status === 503 || aiError.message?.includes('overloaded')) {
+            return res.status(503).json({ 
+              error: 'AI service is experiencing high demand. Please try again in a few minutes.',
+              fallback: true
+            });
+          }
+          
           return res.status(500).json({ error: 'Failed to analyze symptoms using AI' });
         }
       }
