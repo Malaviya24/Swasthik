@@ -44,7 +44,7 @@ export const translations = {
     'chat.send': 'Send',
     'chat.thinking': 'AI is thinking...',
     'chat.error_message': 'Sorry, I encountered an error. Please try again.',
-    'chat.welcome_message': 'Hello! I\'m your AI health assistant. How can I help you today?',
+    'chat.welcome_message': 'Hello! I\'m Swasthik, your professional doctor-like assistant. How can I help you today? If you have any health-related issues, do a quick test - you\'ll see the option on top!',
     
     // Landing page
     'landing.hero_title': 'Your Personal AI Healthcare Assistant',
@@ -132,7 +132,7 @@ export const translations = {
     'chat.send': 'भेजें',
     'chat.thinking': 'AI सोच रहा है...',
     'chat.error_message': 'क्षमा करें, मुझे एक त्रुटि का सामना करना पड़ा। कृपया फिर से कोशिश करें।',
-    'chat.welcome_message': 'नमस्ते! मैं आपका AI स्वास्थ्य सहायक हूं। आज मैं आपकी कैसे मदद कर सकता हूं?',
+    'chat.welcome_message': 'नमस्ते! मैं स्वास्थिक हूं, आपका पेशेवर डॉक्टर जैसा सहायक। आज मैं आपकी कैसे मदद कर सकता हूं? अगर आपको कोई स्वास्थ्य संबंधी समस्या है, तो त्वरित जांच करें - आपको ऊपर विकल्प दिखेगा!',
     
     // Landing page
     'landing.hero_title': 'आपका व्यक्तिगत AI स्वास्थ्य सहायक',
@@ -220,7 +220,7 @@ export const translations = {
     'chat.send': 'পাঠান',
     'chat.thinking': 'AI চিন্তা করছে...',
     'chat.error_message': 'দুঃখিত, আমি একটি ত্রুটির সম্মুখীন হয়েছি। অনুগ্রহ করে আবার চেষ্টা করুন।',
-    'chat.welcome_message': 'হ্যালো! আমি আপনার AI স্বাস্থ্য সহায়ক। আজ আমি আপনাকে কীভাবে সাহায্য করতে পারি?',
+    'chat.welcome_message': 'হ্যালো! আমি স্বাস্থিক, আপনার পেশাদার ডাক্তার-সদৃশ সহায়ক। আজ আমি আপনাকে কীভাবে সাহায্য করতে পারি? যদি আপনার কোন স্বাস্থ্য-সম্পর্কিত সমস্যা থাকে, তাহলে দ্রুত পরীক্ষা করুন - আপনি উপরে বিকল্পটি দেখতে পাবেন!',
     
     // Landing page
     'landing.hero_title': 'আপনার ব্যক্তিগত AI স্বাস্থ্যসেবা সহায়ক',
@@ -308,7 +308,7 @@ export const translations = {
     'chat.send': 'அனுப்பு',
     'chat.thinking': 'AI சிந்திக்கிறது...',
     'chat.error_message': 'மன்னிக்கவும், நான் ஒரு பிழையை எதிர்கொண்டேன். தயவுசெய்து மீண்டும் முயற்சிக்கவும்.',
-    'chat.welcome_message': 'வணக்கம்! நான் உங்கள் AI சுகாதார உதவியாளர். இன்று நான் உங்களுக்கு எப்படி உதவ முடியும்?',
+    'chat.welcome_message': 'வணக்கம்! நான் சுவஸ்திக், உங்கள் தொழில்முறை மருத்துவர் போன்ற உதவியாளர். இன்று நான் உங்களுக்கு எப்படி உதவ முடியும்? உங்களுக்கு எந்த சுகாதார சம்பந்தமான பிரச்சினைகள் இருந்தால், விரைவான சோதனை செய்யுங்கள் - மேலே விருப்பத்தை நீங்கள் பார்ப்பீர்கள்!',
     
     // Landing page
     'landing.hero_title': 'உங்கள் தனிப்பட்ட AI சுகாதாரப் பராமரிப்பு உதவியாளர்',
@@ -376,7 +376,7 @@ export const translations = {
     'chat.send': 'పంపండి',
     'chat.thinking': 'AI ఆలోచిస్తోంది...',
     'chat.error_message': 'క్షమించండి, నేను లోపాన్ని ఎదుర్కొన్నాను. దయచేసి మళ్లీ ప్రయత్నించండి.',
-    'chat.welcome_message': 'హలో! నేను మీ AI ఆరోగ్య సహాయకుడను. ఈ రోజు నేను మీకు ఎలా సహాయం చేయగలను?',
+    'chat.welcome_message': 'హలో! నేను స్వస్థిక్, మీ వృత్తిపరమైన వైద్యుడు వంటి సహాయకుడు. ఈ రోజు నేను మీకు ఎలా సహాయం చేయగలను? మీకు ఏదైనా ఆరోగ్య సంబంధిత సమస్యలు ఉంటే, వేగవంతమైన పరీక్ష చేయండి - మీరు పైన ఎంపికను చూస్తారు!',
     
     // Landing page
     'landing.hero_title': 'మీ వ్యక్తిగత AI ఆరోగ్య సంరక్షణ సహాయకుడు',
@@ -444,7 +444,7 @@ export const translations = {
     'chat.send': 'पाठवा',
     'chat.thinking': 'AI विचार करत आहे...',
     'chat.error_message': 'क्षमस्व, मला एक त्रुटी आली. कृपया पुन्हा प्रयत्न करा.',
-    'chat.welcome_message': 'नमस्कार! मी तुमचा AI आरोग्य सहाय्यक आहे. आज मी तुम्हाला कशी मदत करू शकतो?',
+    'chat.welcome_message': 'नमस्कार! मी स्वास्तिक आहे, तुमचा व्यावसायिक डॉक्टर-सारखा सहाय्यक। आज मी तुम्हाला कशी मदत करू शकतो? जर तुम्हाला कोणतीही आरोग्य संबंधित समस्या असेल, तर द्रुत चाचणी करा - तुम्हाला वर पर्याय दिसेल!',
     
     // Landing page
     'landing.hero_title': 'तुमचा वैयक्तिक AI आरोग्यसेवा सहाय्यक',
@@ -512,7 +512,7 @@ export const translations = {
     'chat.send': 'ପଠାନ୍ତୁ',
     'chat.thinking': 'AI ଚିନ୍ତା କରୁଛି...',
     'chat.error_message': 'ଦୁଃଖିତ, ମୁଁ ଏକ ତ୍ରୁଟିର ସମ୍ମୁଖୀନ ହୋଇଛି। ଦୟାକରି ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।',
-    'chat.welcome_message': 'ନମସ୍କାର! ମୁଁ ଆପଣଙ୍କର AI ସ୍ୱାସ୍ଥ୍ୟ ସହାୟକ। ଆଜି ମୁଁ ଆପଣଙ୍କୁ କିପରି ସାହାଯ୍ୟ କରିପାରିବି?',
+    'chat.welcome_message': 'ନମସ୍କାର! ମୁଁ ସ୍ଵସ୍ଥିକ, ଆପଣଙ୍କର ବୃତ୍ତିଗତ ଡାକ୍ତର-ଭଳି ସହାୟକ। ଆଜି ମୁଁ ଆପଣଙ୍କୁ କିପରି ସାହାଯ୍ୟ କରିପାରିବି? ଯଦି ଆପଣଙ୍କର କୌଣସି ସ୍ୱାସ୍ଥ୍ୟ ସମ୍ବନ୍ଧୀୟ ସମସ୍ୟା ଅଛି, ତେବେ ଦ୍ରୁତ ପରୀକ୍ଷା କରନ୍ତୁ - ଆପଣ ଉପରେ ବିକଳ୍ପ ଦେଖିବେ!',
     
     // Landing page
     'landing.hero_title': 'ଆପଣଙ୍କର ବ୍ୟକ୍ତିଗତ AI ସ୍ୱାସ୍ଥ୍ୟସେବା ସହାୟକ',

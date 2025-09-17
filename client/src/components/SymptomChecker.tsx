@@ -304,7 +304,7 @@ export function SymptomChecker({ open, onOpenChange, onResultReady }: SymptomChe
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2" data-testid="symptom-checker-title">
             <ClipboardList className="w-5 h-5 text-blue-600" />
-            <span>AI Symptom Checker</span>
+            <span>Swasthik Health Check</span>
           </DialogTitle>
         </DialogHeader>
         
@@ -323,13 +323,6 @@ export function SymptomChecker({ open, onOpenChange, onResultReady }: SymptomChe
             </div>
           </div>
 
-          {/* Medical Disclaimer */}
-          <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg" data-testid="medical-disclaimer">
-            <p className="text-sm text-amber-800">
-              <AlertTriangle className="w-4 h-4 mr-2 inline" />
-              This tool provides general information only. Always consult a healthcare professional for medical advice.
-            </p>
-          </div>
 
           {/* Question Card */}
           <Card>

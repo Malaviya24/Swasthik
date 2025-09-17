@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChatInterface } from '@/components/ChatInterface';
 import { MessageInput } from '@/components/MessageInput';
 import { Sidebar } from '@/components/Sidebar';
@@ -17,6 +17,19 @@ export default function Chat() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('chat');
   const [showSymptomChecker, setShowSymptomChecker] = useState(false);
+
+  // Listen for custom event to open symptom checker
+  useEffect(() => {
+    const handleOpenSymptomChecker = () => {
+      setShowSymptomChecker(true);
+    };
+
+    window.addEventListener('openSymptomChecker', handleOpenSymptomChecker);
+    
+    return () => {
+      window.removeEventListener('openSymptomChecker', handleOpenSymptomChecker);
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -76,14 +89,14 @@ export default function Chat() {
   }
 
   const handleSymptomAnalysis = (analysis: HealthAnalysis) => {
-    const analysisMessage = `**🏥 Comprehensive Health Analysis Report**
+    const analysisMessage = `**🏥 Swasthik Health Analysis Report**
 
 **📋 Possible Conditions:**
 ${analysis.possibleConditions.map(condition => `• ${condition}`).join('\n')}
 
 **⚡ Severity Level:** ${analysis.severity.toUpperCase()}
 
-**💡 Recommendations:**
+**💡 Medical Recommendations:**
 ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
 
 **🚨 When to Seek Immediate Help:**
@@ -98,7 +111,7 @@ ${analysis.preventiveTips.map(tip => `• ${tip}`).join('\n')}
 **⏰ Urgency Assessment:**
 ${analysis.urgency}
 
-**⚠️ Important Medical Disclaimer:**
+**🩺 Doctor's Note:**
 ${analysis.disclaimer}`;
 
     sendMessage(analysisMessage);
