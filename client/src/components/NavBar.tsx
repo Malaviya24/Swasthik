@@ -9,6 +9,13 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator 
 } from '@/components/ui/dropdown-menu';
+import { 
+  SignedIn, 
+  SignedOut, 
+  SignInButton, 
+  SignUpButton, 
+  UserButton 
+} from '@clerk/clerk-react';
 
 interface NavBarProps {
   onShowSymptomChecker?: () => void;
@@ -36,26 +43,26 @@ export function NavBar({ onShowSymptomChecker }: NavBarProps) {
 
   return (
     <nav className="bg-white shadow-lg border-b border-gray-200 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8">
-        <div className="flex justify-between items-center h-16 lg:h-18">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16">
+        <div className="flex justify-between items-center h-16 lg:h-18 max-w-full">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2 lg:space-x-3 hover:opacity-90 transition-opacity">
-            <div className="w-11 h-11 lg:w-12 lg:h-12 bg-gradient-to-br from-blue-500 to-green-500 rounded-xl flex items-center justify-center shadow-lg">
-              <i className="fas fa-robot text-white text-lg lg:text-xl"></i>
+          <Link href="/" className="flex items-center space-x-2 lg:space-x-3 hover:opacity-90 transition-opacity flex-shrink-0">
+            <div className="w-11 h-11 lg:w-12 lg:h-12 xl:w-14 xl:h-14 bg-gradient-to-br from-blue-500 to-green-500 rounded-xl flex items-center justify-center shadow-lg">
+              <i className="fas fa-robot text-white text-lg lg:text-xl xl:text-2xl"></i>
             </div>
-            <div className="hidden sm:block">
-              <h1 className="text-lg lg:text-xl xl:text-2xl font-bold text-gray-900 leading-tight">{translate('app.title')}</h1>
-              <p className="text-xs lg:text-sm text-gray-500 leading-tight">{translate('app.subtitle')}</p>
+            <div className="hidden sm:block flex-shrink-0">
+              <h1 className="text-lg lg:text-xl xl:text-2xl 2xl:text-3xl font-bold text-gray-900 leading-tight">{translate('app.title')}</h1>
+              <p className="text-xs lg:text-sm xl:text-base text-gray-500 leading-tight">{translate('app.subtitle')}</p>
             </div>
           </Link>
 
 
           {/* Right Side Actions */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3 lg:space-x-4 xl:space-x-6 2xl:space-x-8 flex-shrink-0">
             {/* Language Selector */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="px-3" data-testid="button-language">
+                <Button variant="outline" size="sm" className="px-3 sm:px-4 xl:px-6 h-9 xl:h-10 text-sm xl:text-base" data-testid="button-language">
                   <i className="fas fa-globe mr-2"></i>
                   <span className="hidden sm:inline">{translate('nav.language')}</span>
                 </Button>
@@ -78,7 +85,7 @@ export function NavBar({ onShowSymptomChecker }: NavBarProps) {
             {/* Features Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700 px-3" data-testid="button-features-menu">
+                <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700 px-3 sm:px-4 xl:px-6 h-9 xl:h-10 text-sm xl:text-base" data-testid="button-features-menu">
                   <i className="fas fa-bars mr-2"></i>
                   <span className="hidden sm:inline">{translate('nav.features')}</span>
                 </Button>
@@ -103,6 +110,28 @@ export function NavBar({ onShowSymptomChecker }: NavBarProps) {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* Authentication */}
+            <SignedOut>
+              <SignInButton mode="modal">
+                <Button variant="outline" size="sm" className="px-3 sm:px-4 xl:px-6 h-9 xl:h-10 text-sm xl:text-base">
+                  <i className="fas fa-sign-in-alt mr-1 sm:mr-2"></i>
+                  <span className="hidden sm:inline">{translate('nav.sign_in')}</span>
+                  <span className="sm:hidden">Sign In</span>
+                </Button>
+              </SignInButton>
+            </SignedOut>
+
+            <SignedIn>
+              <UserButton 
+                afterSignOutUrl="/"
+                appearance={{
+                  elements: {
+                    avatarBox: "w-9 h-9 xl:w-10 xl:h-10"
+                  }
+                }}
+              />
+            </SignedIn>
           </div>
         </div>
 

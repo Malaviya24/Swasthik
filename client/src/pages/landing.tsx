@@ -2,6 +2,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'wouter';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { 
+  SignedIn, 
+  SignedOut, 
+  SignInButton, 
+  SignUpButton 
+} from '@clerk/clerk-react';
 
 export default function Landing() {
   const { translate } = useLanguage();
@@ -69,27 +75,81 @@ export default function Landing() {
               {translate('landing.hero_description')}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 lg:gap-6 justify-center items-center px-4">
-              <Link href="/chat">
-                <Button 
-                  size="lg" 
-                  className="w-full sm:w-auto bg-white text-blue-600 hover:bg-blue-50 px-6 sm:px-8 lg:px-10 py-3 sm:py-4 text-base sm:text-lg lg:text-xl font-semibold shadow-lg hover:shadow-xl transition-all"
-                  data-testid="button-start-chat"
-                >
-                  <i className="fas fa-comments mr-2"></i>
-                  {translate('landing.get_started')}
-                </Button>
-              </Link>
+              <div className="w-full sm:w-auto max-w-xs">
+              <SignedOut>
+                <SignUpButton mode="modal">
+                  <Button 
+                    size="lg" 
+                    className="w-full sm:w-auto bg-white text-blue-600 hover:bg-blue-50 px-6 sm:px-8 lg:px-10 py-3 sm:py-4 text-base sm:text-lg lg:text-xl font-semibold shadow-lg hover:shadow-xl transition-all min-w-0 flex-shrink-0"
+                    data-testid="button-start-chat"
+                  >
+                    <i className="fas fa-comments mr-2"></i>
+                    {translate('landing.get_started')}
+                  </Button>
+                </SignUpButton>
+              </SignedOut>
+              <SignedIn>
+                <Link href="/chat">
+                  <Button 
+                    size="lg" 
+                    className="w-full sm:w-auto bg-white text-blue-600 hover:bg-blue-50 px-6 sm:px-8 lg:px-10 py-3 sm:py-4 text-base sm:text-lg lg:text-xl font-semibold shadow-lg hover:shadow-xl transition-all min-w-0 flex-shrink-0"
+                    data-testid="button-start-chat"
+                  >
+                    <i className="fas fa-comments mr-2"></i>
+                    {translate('landing.get_started')}
+                  </Button>
+                </Link>
+              </SignedIn>
+              </div>
+              <div className="w-full sm:w-auto max-w-xs">
               <Button 
                 size="lg" 
-                className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white border-2 border-red-600 hover:border-red-700 px-6 sm:px-8 lg:px-10 py-3 sm:py-4 text-base sm:text-lg lg:text-xl font-medium transition-all shadow-lg"
+                className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white px-6 sm:px-8 lg:px-10 py-3 sm:py-4 text-base sm:text-lg lg:text-xl font-semibold shadow-lg hover:shadow-xl transition-all min-w-0 flex-shrink-0"
                 data-testid="button-emergency"
                 onClick={() => window.open('tel:108')}
               >
                 <i className="fas fa-phone-alt mr-2"></i>
                 {translate('nav.emergency')}
               </Button>
+              </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Sign In Section */}
+      <div className="py-12 sm:py-16 lg:py-20 bg-gradient-to-r from-blue-50 to-green-50">
+        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6 lg:mb-8">
+            Ready to Experience AI Healthcare?
+          </h2>
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-6 sm:mb-8 lg:mb-10 text-gray-600 max-w-2xl mx-auto leading-relaxed">
+            Join thousands of users who trust Swasthik for their healthcare needs. Get personalized health guidance and access to all features.
+          </p>
+          <SignedOut>
+            <SignInButton mode="modal">
+              <Button 
+                size="lg" 
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 sm:px-8 lg:px-10 py-3 sm:py-4 lg:py-5 text-base sm:text-lg lg:text-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+                data-testid="button-signin-section"
+              >
+                <i className="fas fa-sign-in-alt mr-2"></i>
+                {translate('nav.sign_in')} - {translate('landing.get_started')}
+              </Button>
+            </SignInButton>
+          </SignedOut>
+          <SignedIn>
+            <Link href="/chat">
+              <Button 
+                size="lg" 
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 sm:px-8 lg:px-10 py-3 sm:py-4 lg:py-5 text-base sm:text-lg lg:text-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+                data-testid="button-start-chat-section"
+              >
+                <i className="fas fa-comments mr-2"></i>
+                {translate('landing.get_started')} - Start Chatting
+              </Button>
+            </Link>
+          </SignedIn>
         </div>
       </div>
 
@@ -183,16 +243,30 @@ export default function Landing() {
           <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-6 sm:mb-8 lg:mb-10 text-blue-100 max-w-2xl mx-auto leading-relaxed">
             {translate('landing.cta_subheading')}
           </p>
-          <Link href="/chat">
-            <Button 
-              size="lg" 
-              className="bg-white text-blue-600 hover:bg-blue-50 px-6 sm:px-8 lg:px-10 py-3 sm:py-4 lg:py-5 text-base sm:text-lg lg:text-xl font-semibold shadow-lg hover:shadow-xl transition-all"
-              data-testid="button-cta-chat"
-            >
-              <i className="fas fa-arrow-right mr-2"></i>
-{translate('landing.get_started_now')}
-            </Button>
-          </Link>
+          <SignedOut>
+            <SignUpButton mode="modal">
+              <Button 
+                size="lg" 
+                className="bg-white text-blue-600 hover:bg-blue-50 px-6 sm:px-8 lg:px-10 py-3 sm:py-4 lg:py-5 text-base sm:text-lg lg:text-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+                data-testid="button-cta-chat"
+              >
+                <i className="fas fa-arrow-right mr-2"></i>
+                {translate('landing.get_started_now')}
+              </Button>
+            </SignUpButton>
+          </SignedOut>
+          <SignedIn>
+            <Link href="/chat">
+              <Button 
+                size="lg" 
+                className="bg-white text-blue-600 hover:bg-blue-50 px-6 sm:px-8 lg:px-10 py-3 sm:py-4 lg:py-5 text-base sm:text-lg lg:text-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+                data-testid="button-cta-chat"
+              >
+                <i className="fas fa-arrow-right mr-2"></i>
+                {translate('landing.get_started_now')}
+              </Button>
+            </Link>
+          </SignedIn>
         </div>
       </div>
 

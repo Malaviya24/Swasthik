@@ -143,6 +143,10 @@ export default function RemindersPage() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
   const [notifiedReminders, setNotifiedReminders] = useState<Set<string>>(new Set());
+  
+  // Form key to control re-rendering
+  const [formKey, setFormKey] = useState(0);
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -157,12 +161,14 @@ export default function RemindersPage() {
       time: '09:00',
       period: 'AM',
     },
+    mode: 'onSubmit', // Only validate on submit, not on change
   });
 
   // Edit form for editing existing reminders
   const editForm = useForm<ReminderFormData>({
     resolver: zodResolver(reminderFormSchema),
   });
+
 
   // Fetch reminders from API
   const { data: reminders = [], isLoading, error } = useQuery<Reminder[]>({
@@ -183,14 +189,18 @@ export default function RemindersPage() {
         title: "Reminder Added",
         description: "Your health reminder has been set successfully.",
       });
-      form.reset({
-        title: '',
-        reminderType: 'medication',
-        description: '',
-        date: format(new Date(), 'yyyy-MM-dd'),
-        time: '09:00',
-        period: 'AM',
-      });
+      // Only reset form after successful submission
+      setTimeout(() => {
+        form.reset({
+          title: '',
+          reminderType: 'medication',
+          description: '',
+          date: format(new Date(), 'yyyy-MM-dd'),
+          time: '09:00',
+          period: 'AM',
+        });
+        setFormKey(prev => prev + 1);
+      }, 100);
       queryClient.invalidateQueries({ queryKey: ['/api/reminders'] });
     },
     onError: (error) => {
@@ -634,7 +644,7 @@ export default function RemindersPage() {
     isLoading: boolean;
     submitLabel: string;
   }) => (
-    <Form {...form}>
+    <Form {...form} key={formKey}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
@@ -647,6 +657,7 @@ export default function RemindersPage() {
                   placeholder="e.g., Take morning vitamins"
                   {...field}
                   data-testid="input-reminder-title"
+                  autoComplete="off"
                 />
               </FormControl>
               <FormMessage />
@@ -752,6 +763,7 @@ export default function RemindersPage() {
                   rows={3}
                   {...field}
                   data-testid="textarea-reminder-description"
+                  autoComplete="off"
                 />
               </FormControl>
               <FormMessage />

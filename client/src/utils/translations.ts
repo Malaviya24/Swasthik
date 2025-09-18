@@ -9,6 +9,14 @@ export const translations = {
     'nav.find_centers': 'Find Centers',
     'nav.reminders': 'Reminders',
     'nav.health_news': 'Health News',
+    'nav.sign_in': 'Sign In',
+    'nav.sign_up': 'Sign Up',
+    
+    // Authentication
+    'auth.login_required': 'Login Required',
+    'auth.login_required_desc': 'Please sign in to access this feature',
+    'auth.login_required_message': 'You need to be signed in to access your reminders and personalized features.',
+    'auth.go_back': 'Go Back',
     
     // App title and description
     'app.title': 'Swasthik',
@@ -45,6 +53,21 @@ export const translations = {
     'chat.thinking': 'AI is thinking...',
     'chat.error_message': 'Sorry, I encountered an error. Please try again.',
     'chat.welcome_message': 'Hello! I\'m Swasthik, your professional doctor-like assistant. How can I help you today? If you have any health-related issues, do a quick test - you\'ll see the option on top!',
+    
+    // Chat History
+    'chat.history.title': 'Chat History',
+    'chat.history.new_chat': 'New Chat',
+    'chat.history.empty': 'No previous conversations found',
+    'chat.history.messages': 'messages',
+    'chat.history.load': 'Load Chat',
+    'chat.history.delete': 'Delete',
+    'chat.history.clear_all': 'Clear All',
+    'chat.history.clear_all_confirm': 'Are you sure you want to delete all chat history? This action cannot be undone.',
+    
+    // Copy functionality
+    'chat.copy_success': 'Copied!',
+    'chat.copy_success_desc': 'Text copied to clipboard',
+    'chat.copy_error': 'Failed to copy text',
     
     // Landing page
     'landing.hero_title': 'Your Personal AI Healthcare Assistant',
@@ -97,6 +120,14 @@ export const translations = {
     'nav.find_centers': 'केंद्र खोजें',
     'nav.reminders': 'रिमाइंडर',
     'nav.health_news': 'स्वास्थ्य समाचार',
+    'nav.sign_in': 'साइन इन',
+    'nav.sign_up': 'साइन अप',
+    
+    // Authentication
+    'auth.login_required': 'लॉगिन आवश्यक',
+    'auth.login_required_desc': 'इस सुविधा तक पहुंचने के लिए कृपया साइन इन करें',
+    'auth.login_required_message': 'अपने रिमाइंडर और व्यक्तिगत सुविधाओं तक पहुंचने के लिए आपको साइन इन करना होगा।',
+    'auth.go_back': 'वापस जाएं',
     
     // App title and description
     'app.title': 'स्वास्थिक',
@@ -133,6 +164,21 @@ export const translations = {
     'chat.thinking': 'AI सोच रहा है...',
     'chat.error_message': 'क्षमा करें, मुझे एक त्रुटि का सामना करना पड़ा। कृपया फिर से कोशिश करें।',
     'chat.welcome_message': 'नमस्ते! मैं स्वास्थिक हूं, आपका पेशेवर डॉक्टर जैसा सहायक। आज मैं आपकी कैसे मदद कर सकता हूं? अगर आपको कोई स्वास्थ्य संबंधी समस्या है, तो त्वरित जांच करें - आपको ऊपर विकल्प दिखेगा!',
+    
+    // Chat History
+    'chat.history.title': 'चैट इतिहास',
+    'chat.history.new_chat': 'नई चैट',
+    'chat.history.empty': 'कोई पिछली बातचीत नहीं मिली',
+    'chat.history.messages': 'संदेश',
+    'chat.history.load': 'चैट लोड करें',
+    'chat.history.delete': 'हटाएं',
+    'chat.history.clear_all': 'सभी साफ करें',
+    'chat.history.clear_all_confirm': 'क्या आप वाकई सभी चैट इतिहास हटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती।',
+    
+    // Copy functionality
+    'chat.copy_success': 'कॉपी हो गया!',
+    'chat.copy_success_desc': 'टेक्स्ट क्लिपबोर्ड में कॉपी हो गया',
+    'chat.copy_error': 'टेक्स्ट कॉपी करने में विफल',
     
     // Landing page
     'landing.hero_title': 'आपका व्यक्तिगत AI स्वास्थ्य सहायक',
@@ -185,6 +231,8 @@ export const translations = {
     'nav.find_centers': 'কেন্দ্র খুঁজুন',
     'nav.reminders': 'রিমাইন্ডার',
     'nav.health_news': 'স্বাস্থ্য সংবাদ',
+    'nav.sign_in': 'সাইন ইন',
+    'nav.sign_up': 'সাইন আপ',
     
     // App title and description
     'app.title': 'স্বাস্থিক',
@@ -273,6 +321,8 @@ export const translations = {
     'nav.find_centers': 'மையங்களைக் கண்டறியவும்',
     'nav.reminders': 'நினைவூட்டல்கள்',
     'nav.health_news': 'சுகாதார செய்திகள்',
+    'nav.sign_in': 'உள்நுழைய',
+    'nav.sign_up': 'பதிவு செய்',
     
     // App title and description
     'app.title': 'ஸ்வாஸ்திக்',
@@ -341,6 +391,8 @@ export const translations = {
     'nav.find_centers': 'కేంద్రాలను కనుగొనండి',
     'nav.reminders': 'రిమైండర్లు',
     'nav.health_news': 'ఆరోగ్య వార్తలు',
+    'nav.sign_in': 'సైన్ ఇన్',
+    'nav.sign_up': 'సైన్ అప్',
     
     // App title and description
     'app.title': 'స్వాస్తిక్',
@@ -409,6 +461,8 @@ export const translations = {
     'nav.find_centers': 'केंद्रे शोधा',
     'nav.reminders': 'स्मरणपत्रे',
     'nav.health_news': 'आरोग्य बातम्या',
+    'nav.sign_in': 'साइन इन',
+    'nav.sign_up': 'साइन अप',
     
     // App title and description
     'app.title': 'स्वास्तिक',
@@ -477,6 +531,8 @@ export const translations = {
     'nav.find_centers': 'କେନ୍ଦ୍ର ଖୋଜନ୍ତୁ',
     'nav.reminders': 'ସ୍ମାରକ',
     'nav.health_news': 'ସ୍ୱାସ୍ଥ୍ୟ ସମାଚାର',
+    'nav.sign_in': 'ସାଇନ୍ ଇନ୍',
+    'nav.sign_up': 'ସାଇନ୍ ଅପ୍',
     
     // App title and description
     'app.title': 'ସ୍ୱାସ୍ତିକ',

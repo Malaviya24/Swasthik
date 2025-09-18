@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'wouter';
 import { ChatInterface } from '@/components/ChatInterface';
 import { MessageInput } from '@/components/MessageInput';
 import { Sidebar } from '@/components/Sidebar';
 import { SymptomChecker } from '@/components/SymptomChecker';
+import { ChatHistory } from '@/components/ChatHistory';
 import { useChat } from '@/hooks/use-chat';
 import { useAuth } from '@/hooks/use-auth';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -12,7 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function Chat() {
   const { user, loading, login, authError, isAuthAvailable } = useAuth();
-  const { messages, isLoading, sendMessage, clearChat } = useChat();
+  const { messages, isLoading, sendMessage, clearChat, loadSession } = useChat();
   const isMobile = useIsMobile();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('chat');
@@ -118,54 +120,61 @@ ${analysis.disclaimer}`;
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50" data-testid="page-chat">
-      {/* Modern Chat Container */}
-      <div className={`${isMobile ? 'max-w-full' : 'max-w-6xl'} mx-auto h-screen flex flex-col ${isMobile ? 'p-2' : 'p-4'}`}>
-        {/* Enhanced Chat Header */}
-        <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-green-600 rounded-t-2xl shadow-xl">
-          <div className={`${isMobile ? 'p-4' : 'p-6'}`}>
-            <div className={`flex items-center ${isMobile ? 'flex-col space-y-3' : 'justify-between'}`}>
-              <div className={`flex items-center ${isMobile ? 'space-x-3' : 'space-x-4'}`}>
-                <div className="relative">
-                  <div className={`${isMobile ? 'w-12 h-12' : 'w-14 h-14'} bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center`}>
-                    <i className={`fas fa-robot ${isMobile ? 'text-xl' : 'text-2xl'} text-white`}></i>
-                  </div>
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 rounded-full border-2 border-white animate-pulse"></div>
-                </div>
-                <div className={isMobile ? 'text-center' : ''}>
-                  <h1 className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-white`}>Swasthik AI</h1>
-                  <p className={`text-blue-100 ${isMobile ? 'text-xs' : 'text-sm'} flex items-center gap-2 ${isMobile ? 'justify-center' : ''}`}>
-                    <span className="w-2 h-2 bg-green-400 rounded-full"></span>
-                    Online • Ready to assist with your health
-                  </p>
-                </div>
+    <div className="min-h-screen bg-gray-50" data-testid="page-chat">
+      <div className="flex h-screen">
+        {/* Sidebar */}
+        <Sidebar
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          onShowSymptomChecker={() => setShowSymptomChecker(true)}
+          onLoadSession={loadSession}
+          onNewChat={clearChat}
+        />
+        
+        {/* Main Chat Area */}
+        <div className="flex-1 flex flex-col bg-white">
+          {/* Clean Header for All Screen Sizes */}
+          <div className="bg-white border-b border-gray-200">
+            <div className="flex items-center justify-between px-6 py-4">
+              {/* Left: Menu Button (Mobile/Tablet) or Spacer (Desktop) */}
+              <div className="flex items-center">
+                <Button
+                  onClick={() => setIsSidebarOpen(true)}
+                  variant="ghost"
+                  size="sm"
+                  className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg px-3 py-2 lg:hidden"
+                  data-testid="button-open-sidebar"
+                >
+                  <i className="fas fa-bars text-sm"></i>
+                </Button>
+                <div className="hidden lg:block w-8"></div>
               </div>
               
-              <div className={`flex items-center ${isMobile ? 'space-x-2 flex-wrap justify-center' : 'space-x-3'}`}>
-                <Button 
-                  onClick={() => setShowSymptomChecker(true)}
-                  className={`bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border border-white/30 transition-all duration-200 hover:scale-105 ${isMobile ? 'text-xs px-3 py-2' : ''}`}
-                  data-testid="button-symptom-checker"
-                >
-                  <i className={`fas fa-stethoscope ${isMobile ? 'mr-1' : 'mr-2'}`}></i>
-                  {isMobile ? 'Check' : 'Quick Check'}
-                </Button>
-                <Button 
-                  onClick={clearChat}
-                  variant="outline"
-                  className={`bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white border-white/30 transition-all duration-200 ${isMobile ? 'text-xs px-3 py-2' : ''}`}
-                  data-testid="button-clear-chat"
-                >
-                  <i className={`fas fa-refresh ${isMobile ? 'mr-1' : 'mr-2'}`}></i>
-                  {isMobile ? 'New' : 'New Chat'}
-                </Button>
+              {/* Center: Logo and Brand */}
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center">
+                  <i className="fas fa-robot text-white text-sm"></i>
+                </div>
+                <span className="text-sm font-medium text-gray-900">Swasthik AI</span>
               </div>
+              
+              {/* Right: Quick Check Button */}
+              <Button
+                onClick={() => setShowSymptomChecker(true)}
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-3 py-2"
+                data-testid="button-symptom-checker"
+              >
+                <i className="fas fa-stethoscope text-xs"></i>
+                <span className="ml-2 text-xs hidden sm:inline">Quick Check</span>
+              </Button>
             </div>
           </div>
-        </div>
-
-        {/* Chat Content Area */}
-        <div className="flex-1 bg-white/80 backdrop-blur-sm border-x border-gray-200 flex flex-col overflow-hidden">
+          
+          {/* Chat Content Area */}
+          <div className="flex-1 flex flex-col overflow-hidden">
           <ChatInterface
             messages={messages}
             isLoading={isLoading}
@@ -173,12 +182,13 @@ ${analysis.disclaimer}`;
           />
         </div>
 
-        {/* Message Input Area */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-b-2xl border border-t-0 border-gray-200 shadow-xl">
+          {/* Message Input Area */}
+          <div className="bg-white border-t border-gray-200">
           <MessageInput
             onSendMessage={sendMessage}
             disabled={isLoading}
           />
+        </div>
         </div>
       </div>
 

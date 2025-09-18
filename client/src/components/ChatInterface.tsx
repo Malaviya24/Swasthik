@@ -3,9 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChatMessage } from '@/lib/gemini';
 import { TypingIndicator } from '@/components/ui/typing-indicator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/use-auth';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useToast } from '@/hooks/use-toast';
 
 interface ChatInterfaceProps {
   messages: ChatMessage[];
@@ -18,8 +20,10 @@ export function ChatInterface({ messages, isLoading, onClearChat }: ChatInterfac
   const { user } = useAuth();
   const { translate } = useLanguage();
   const isMobile = useIsMobile();
+  const { toast } = useToast();
   const [isHealthTipVisible, setIsHealthTipVisible] = useState(true);
   const [expandedSummaries, setExpandedSummaries] = useState<Set<number>>(new Set());
+  const [copiedMessageIndex, setCopiedMessageIndex] = useState<number | null>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -106,6 +110,29 @@ export function ChatInterface({ messages, isLoading, onClearChat }: ChatInterfac
       newExpanded.add(messageIndex);
     }
     setExpandedSummaries(newExpanded);
+  };
+
+  const copyToClipboard = async (content: string, messageIndex: number) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopiedMessageIndex(messageIndex);
+      toast({
+        title: translate('chat.copy_success'),
+        description: translate('chat.copy_success_desc'),
+      });
+      
+      // Reset copied state after 2 seconds
+      setTimeout(() => {
+        setCopiedMessageIndex(null);
+      }, 2000);
+    } catch (error) {
+      console.error('Failed to copy text:', error);
+      toast({
+        title: translate('common.error'),
+        description: translate('chat.copy_error'),
+        variant: "destructive",
+      });
+    }
   };
 
   const formatMessage = (content: string) => {
@@ -239,6 +266,25 @@ export function ChatInterface({ messages, isLoading, onClearChat }: ChatInterfac
                   ? 'order-1' 
                   : 'order-2'
               }`}>
+                {/* Copy Button for All Messages */}
+                <div className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className={`h-8 w-8 p-0 shadow-lg ${
+                      message.role === 'user' 
+                        ? 'bg-blue-500 hover:bg-blue-600 border-blue-400 text-white' 
+                        : 'bg-white hover:bg-gray-50 border-gray-200'
+                    }`}
+                    onClick={() => copyToClipboard(message.content, index)}
+                    data-testid={`copy-button-${index}`}
+                  >
+                    <i className={`fas ${copiedMessageIndex === index ? 'fa-check text-green-600' : 'fa-copy'} text-xs ${
+                      message.role === 'user' ? 'text-white' : 'text-gray-600'
+                    }`}></i>
+                  </Button>
+                </div>
+                
                 <div className={`${isMobile ? 'p-3' : 'p-4'} rounded-3xl shadow-sm ${
                   message.role === 'user' 
                     ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-tr-lg' 
