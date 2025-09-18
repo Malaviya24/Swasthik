@@ -9,7 +9,7 @@
 
 **AI-powered healthcare assistant for rural and semi-urban communities across India**
 
-[Live Demo](https://your-demo-link.com) • [Documentation](https://your-docs-link.com) • [Report Bug](https://github.com/your-username/swasthik/issues)
+[Live Demo](https://swasthik-ai.vercel.app/) • [Report Bug](https://github.com/your-username/swasthik/issues)
 
 </div>
 
