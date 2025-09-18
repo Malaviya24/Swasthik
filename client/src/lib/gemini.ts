@@ -27,29 +27,53 @@ export interface MedicationInfo {
 export async function sendChatMessage(
   message: string,
   conversationHistory: ChatMessage[] = [],
-  language: string = 'en'
+  language: string = 'en',
+  imageFile?: File
 ): Promise<string> {
   try {
     // Get API base URL for deployment
     const apiBaseUrl = import.meta.env.VITE_API_URL || '';
-    const response = await fetch(`${apiBaseUrl}/api/chat`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        message,
-        history: conversationHistory,
-        language,
-      }),
-    });
+    
+    if (imageFile) {
+      // Send image + text using FormData
+      const formData = new FormData();
+      formData.append('message', message);
+      formData.append('history', JSON.stringify(conversationHistory));
+      formData.append('language', language);
+      formData.append('image', imageFile);
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const response = await fetch(`${apiBaseUrl}/api/chat`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.response;
+    } else {
+      // Send text only using JSON
+      const response = await fetch(`${apiBaseUrl}/api/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message,
+          history: conversationHistory,
+          language,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.response;
     }
-
-    const data = await response.json();
-    return data.response;
   } catch (error) {
     console.error('Error sending chat message:', error);
     throw error;

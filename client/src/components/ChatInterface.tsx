@@ -245,6 +245,17 @@ export function ChatInterface({ messages, isLoading, onClearChat }: ChatInterfac
                     : 'bg-white border border-gray-100 text-gray-800 rounded-tl-lg'
                 }`}>
                   <div className={`${isMobile ? 'text-xs' : 'text-sm'} leading-relaxed space-y-2`}>
+                    {/* Display image if message has image metadata */}
+                    {message.metadata?.fileName && (
+                      <div className={`mb-3 ${isMobile ? 'p-2' : 'p-3'} bg-gray-50 rounded-lg border border-gray-200`}>
+                        <div className={`flex items-center ${isMobile ? 'space-x-2' : 'space-x-3'}`}>
+                          <i className={`fas fa-image text-blue-500 ${isMobile ? 'text-sm' : 'text-base'}`}></i>
+                          <span className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-600 font-medium truncate`}>
+                            📷 {message.metadata.fileName}
+                          </span>
+                        </div>
+                      </div>
+                    )}
                     {formatMessage(message.content)}
                   </div>
                   

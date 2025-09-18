@@ -17,18 +17,19 @@ export function useChat() {
     }]);
   }, [currentLanguage, translate]);
 
-  const sendMessage = useCallback(async (content: string, messageType: 'text' | 'image' | 'voice' = 'text') => {
+  const sendMessage = useCallback(async (content: string, messageType: 'text' | 'image' | 'voice' = 'text', imageFile?: File) => {
     const userMessage: ChatMessage = {
       role: 'user',
       content,
       messageType,
+      metadata: imageFile ? { fileName: imageFile.name, fileSize: imageFile.size } : undefined,
     };
 
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
 
     try {
-      const response = await sendChatMessage(content, messages, currentLanguage);
+      const response = await sendChatMessage(content, messages, currentLanguage, imageFile);
       
       const assistantMessage: ChatMessage = {
         role: 'assistant',
@@ -46,7 +47,7 @@ export function useChat() {
     } finally {
       setIsLoading(false);
     }
-  }, [messages, toast]);
+  }, [messages, toast, currentLanguage, translate]);
 
   const clearChat = useCallback(() => {
     setMessages([{

@@ -5,6 +5,21 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mobile-specific styles */
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+}
+
 :root {
   --background: hsl(0 0% 100%);
   --foreground: hsl(222.2 84% 4.9%);
