@@ -1,330 +1,205 @@
-# Swasthik - AI Healthcare Assistant
+# 🏥 Swasthik - AI Healthcare Assistant
 
 <div align="center">
-  <img src="https://img.shields.io/badge/React-18.3.1-blue?logo=react" alt="React Version" />
-  <img src="https://img.shields.io/badge/TypeScript-5.6.3-blue?logo=typescript" alt="TypeScript Version" />
-  <img src="https://img.shields.io/badge/Express-4.21.2-green?logo=express" alt="Express Version" />
-  <img src="https://img.shields.io/badge/TailwindCSS-3.4.17-blue?logo=tailwindcss" alt="TailwindCSS Version" />
-  <img src="https://img.shields.io/badge/Google%20Gemini-AI-orange?logo=google" alt="Google Gemini AI" />
+
+![React](https://img.shields.io/badge/React-18.3.1-61DAFB?logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.6.3-3178C6?logo=typescript&logoColor=white)
+![Express](https://img.shields.io/badge/Express-4.21.2-000000?logo=express&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.4.17-06B6D4?logo=tailwindcss&logoColor=white)
+
+**AI-powered healthcare assistant for rural and semi-urban communities across India**
+
+[Live Demo](https://your-demo-link.com) • [Documentation](https://your-docs-link.com) • [Report Bug](https://github.com/your-username/swasthik/issues)
+
 </div>
 
-## 🏥 Overview
+---
 
-**Swasthik** (स्वास्थिक) is an AI-powered healthcare assistant designed specifically for rural and semi-urban communities across India. The application provides comprehensive health guidance, symptom analysis, medication information, and healthcare facility location services in multiple Indian languages.
+## ✨ Features
 
-## ✨ Key Features
+### 🤖 **AI Health Assistant**
+- 24/7 health guidance powered by Google Gemini AI
+- Multilingual support (English, Hindi, Bengali, Tamil, Telugu, Marathi)
+- Voice interaction and contextual conversations
 
-### 🤖 AI Health Assistant
-- **24/7 Health Chat**: Get instant health guidance powered by Google Gemini AI
-- **Multilingual Support**: Available in English, Hindi, Bengali, Tamil, Telugu, and Marathi
-- **Contextual Conversations**: Maintains conversation history for better assistance
-- **Voice Interaction**: Speak your health concerns and receive voice responses
+### 🔍 **Smart Health Tools**
+- **Symptom Checker** - AI-powered symptom analysis with severity assessment
+- **Medication Database** - Comprehensive drug information with dosage guidelines
+- **Health Center Finder** - Location-based search for nearby healthcare facilities
+- **Image Analysis** - Upload photos for AI-powered medical guidance
 
-### 🔍 Symptom Analysis
-- **Intelligent Symptom Checker**: Analyze symptoms with AI-powered recommendations
-- **Severity Assessment**: Get urgency levels and appropriate next steps
-- **Personalized Recommendations**: Tailored health advice based on symptoms
-- **Medical Disclaimers**: Always includes appropriate health disclaimers
+### 📱 **Modern Experience**
+- Responsive design for all devices
+- Progressive Web App capabilities
+- Intuitive interface with accessibility features
+- Health reminders and appointment tracking
 
-### 💊 Medication Information
-- **Drug Database**: Search and get detailed information about medications
-- **Dosage Guidelines**: Safe dosage recommendations with doctor consultation reminders
-- **Side Effects & Interactions**: Comprehensive medication safety information
-- **Price Information**: Approximate pricing in Indian Rupees
+---
 
-### 📍 Health Center Finder
-- **Location-Based Search**: Find nearby hospitals, clinics, and healthcare facilities
-- **Detailed Information**: Contact details, services, ratings, and timings
-- **Emergency Services**: Quick access to emergency healthcare facilities
-- **Multiple Healthcare Types**: Hospitals, clinics, pharmacies, and diagnostic centers
-
-### 📸 Image Analysis
-- **Health Image Analysis**: Upload photos for AI-powered medical guidance
-- **Visual Symptom Assessment**: Analyze skin conditions, wounds, and other visible symptoms
-- **Medical Image Interpretation**: Get insights from X-rays, scans, and medical images
-
-### ⏰ Health Reminders
-- **Medication Reminders**: Set reminders for medication schedules
-- **Appointment Alerts**: Never miss important health appointments
-- **Vaccination Reminders**: Track vaccination schedules
-- **Health Checkup Alerts**: Regular health monitoring reminders
-
-### 📱 Modern UI/UX
-- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
-- **Intuitive Interface**: Clean, modern design with easy navigation
-- **Accessibility**: Designed for users with varying technical expertise
-- **Progressive Web App**: Fast loading and offline capabilities
-
-## 🛠️ Technology Stack
-
-### Frontend
-- **React 18.3.1** - Modern UI library
-- **TypeScript 5.6.3** - Type-safe JavaScript
-- **TailwindCSS 3.4.17** - Utility-first CSS framework
-- **Wouter 3.3.5** - Lightweight routing
-- **Framer Motion 11.13.1** - Smooth animations
-- **Radix UI** - Accessible component primitives
-- **React Query** - Data fetching and caching
-
-### Backend
-- **Express.js 4.21.2** - Web application framework
-- **Node.js** - JavaScript runtime
-- **TypeScript** - Type-safe backend development
-- **Multer** - File upload handling
-- **WebSocket** - Real-time communication
-
-### AI & Database
-- **Google Gemini AI** - Advanced AI for health assistance
-- **Drizzle ORM** - Type-safe database operations
-- **PostgreSQL** - Robust database system
-- **Neon Database** - Serverless PostgreSQL
-
-### Development Tools
-- **Vite** - Fast build tool and dev server
-- **ESBuild** - JavaScript bundler
-- **Drizzle Kit** - Database migrations
-- **Zod** - Schema validation
-
-## 🚀 Getting Started
+## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+ 
-- npm or yarn
-- PostgreSQL database
+- Node.js 18+
 - Google Gemini API key
+- PostgreSQL database (optional)
 
 ### Installation
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd health-chabot
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Environment Setup**
-   Create a `.env` file in the root directory:
-   ```env
-   # Google Gemini AI API Key (Required for AI chat)
-   GEMINI_API_KEY=your_gemini_api_key_here
-   
-   # Database Configuration (Optional for demo)
-   DATABASE_URL=your_postgresql_connection_string
-   
-   # Server Configuration
-   NODE_ENV=development
-   PORT=5000
-   ```
-
-   **Get your Google Gemini API Key:**
-   1. Visit [Google AI Studio](https://aistudio.google.com/)
-   2. Sign in with your Google account
-   3. Click "Get API Key" and create a new key
-   4. Copy the key to your `.env` file
-
-4. **Database Setup**
-   ```bash
-   npm run db:push
-   ```
-
-5. **Start Development Server**
-   ```bash
-   npm run dev
-   ```
-
-6. **Access the Application**
-   Open your browser and navigate to `http://localhost:5000`
-
-### Production Build
-
 ```bash
-# Build the application
-npm run build
+# Clone the repository
+git clone https://github.com/your-username/swasthik.git
+cd swasthik
 
-# Start production server
-npm start
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp env.example .env
+# Edit .env with your API keys
+
+# Start development server
+npm run dev
 ```
+
+### Environment Setup
+
+Create a `.env` file in the root directory:
+
+```env
+# Required
+GEMINI_API_KEY=your_gemini_api_key_here
+
+# Optional
+DATABASE_URL=your_postgresql_connection_string
+NODE_ENV=development
+PORT=5000
+```
+
+**Get your Google Gemini API Key:**
+1. Visit [Google AI Studio](https://aistudio.google.com/)
+2. Sign in and create a new API key
+3. Add it to your `.env` file
+
+---
+
+## 🛠️ Tech Stack
+
+| Category | Technology |
+|----------|------------|
+| **Frontend** | React 18, TypeScript, TailwindCSS, Wouter |
+| **Backend** | Express.js, Node.js, TypeScript |
+| **AI** | Google Gemini AI |
+| **Database** | PostgreSQL, Drizzle ORM |
+| **UI** | Radix UI, Framer Motion |
+| **Tools** | Vite, ESBuild, Zod |
+
+---
 
 ## 📁 Project Structure
 
 ```
-health-chabot/
-├── client/                 # Frontend React application
+swasthik/
+├── client/                 # React frontend
 │   ├── src/
-│   │   ├── components/     # Reusable UI components
-│   │   │   ├── ui/        # Base UI components (Radix UI)
-│   │   │   ├── ChatInterface.tsx
-│   │   │   ├── SymptomChecker.tsx
-│   │   │   └── ...
+│   │   ├── components/     # UI components
 │   │   ├── pages/         # Application pages
-│   │   │   ├── chat.tsx
-│   │   │   ├── landing.tsx
-│   │   │   └── ...
-│   │   ├── hooks/         # Custom React hooks
-│   │   ├── lib/          # Utility libraries
-│   │   └── main.tsx      # Application entry point
-├── server/                # Backend Express application
-│   ├── index.ts          # Server entry point
-│   ├── routes.ts         # API route handlers
-│   └── storage.ts        # Database operations
-├── shared/               # Shared types and schemas
-│   └── schema.ts         # Database schemas and types
-├── package.json          # Dependencies and scripts
-├── vite.config.ts        # Vite configuration
-├── tailwind.config.ts    # TailwindCSS configuration
-└── tsconfig.json         # TypeScript configuration
+│   │   ├── hooks/         # Custom hooks
+│   │   └── lib/          # Utilities
+├── server/                # Express backend
+│   ├── index.ts          # Server entry
+│   ├── routes.ts         # API routes
+│   └── storage.ts        # Database ops
+├── shared/               # Shared schemas
+└── package.json          # Dependencies
 ```
 
-## 🔧 API Endpoints
+---
 
-### Chat & AI
-- `POST /api/chat` - Send chat message to AI assistant
-- `POST /api/analyze-image` - Analyze uploaded health images
-- `POST /api/analyze-symptoms` - Analyze user symptoms
-- `POST /api/transcribe-audio` - Convert voice to text
+## 🔧 Available Scripts
 
-### Health Services
-- `GET /api/medications/search` - Search medication information
-- `POST /api/health-centers/search` - Search healthcare facilities
-- `POST /api/find-health-centers` - Find nearby health centers
+```bash
+# Development
+npm run dev              # Start dev server
+npm run dev:unix         # Start dev server (Unix)
 
-### Reminders
-- `GET /api/reminders` - Get user reminders
-- `POST /api/reminders` - Create new reminder
-- `PATCH /api/reminders/:id` - Update reminder
-- `DELETE /api/reminders/:id` - Delete reminder
+# Production
+npm run build            # Build for production
+npm start                # Start production server
+npm start:unix           # Start production server (Unix)
 
-## 🌐 Supported Languages
+# Database
+npm run db:push          # Push database schema
 
-- **English** 🇬🇧
-- **हिंदी (Hindi)** 🇮🇳
-- **বাংলা (Bengali)** 🇧🇩
-- **தமிழ் (Tamil)** 🇮🇳
-- **తెలుగు (Telugu)** 🇮🇳
-- **मराठी (Marathi)** 🇮🇳
+# Utilities
+npm run check            # Type checking
+```
 
-## 🎯 Target Audience
+---
 
-- **Rural Communities**: Accessible healthcare information for underserved areas
-- **Semi-Urban Areas**: Bridge the gap between rural and urban healthcare
-- **Multilingual Users**: Native language support for better understanding
-- **Mobile-First Users**: Optimized for smartphone usage
-- **Healthcare Seekers**: General health information and guidance
+## 🌐 API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/chat` | Send message to AI assistant |
+| `POST` | `/api/analyze-image` | Analyze uploaded images |
+| `POST` | `/api/analyze-symptoms` | Analyze user symptoms |
+| `GET` | `/api/medications/search` | Search medication info |
+| `POST` | `/api/health-centers/search` | Find healthcare facilities |
+
+---
+
+## 🌍 Supported Languages
+
+- 🇬🇧 **English**
+- 🇮🇳 **हिंदी (Hindi)**
+- 🇧🇩 **বাংলা (Bengali)**
+- 🇮🇳 **தமிழ் (Tamil)**
+- 🇮🇳 **తెలుగు (Telugu)**
+- 🇮🇳 **मराठी (Marathi)**
+
+---
 
 ## ⚠️ Important Disclaimers
 
-- **Not a Medical Diagnosis**: This application provides general health information only
-- **Professional Consultation**: Always consult qualified healthcare professionals for medical advice
-- **Emergency Situations**: For medical emergencies, call 108 or visit the nearest hospital
-- **Data Privacy**: User health data is handled with strict privacy measures
-- **AI Limitations**: AI responses should not replace professional medical judgment
+> **⚠️ This application provides general health information only and is not a substitute for professional medical advice. Always consult qualified healthcare professionals for medical diagnosis and treatment.**
 
-## 🔧 Troubleshooting
+- Not a medical diagnosis tool
+- Professional consultation recommended
+- For emergencies, call 108 or visit nearest hospital
+- AI responses should not replace medical judgment
 
-### Common Errors and Solutions
-
-#### 1. **Build Directory Error**
-```
-Error: Could not find the build directory
-```
-**Solution**: Run `npm run build` before starting the server
-
-#### 2. **Port Already in Use**
-```
-Error: listen EADDRINUSE: address already in use :::5000
-```
-**Solution**: 
-```bash
-# Find and kill the process using port 5000
-netstat -ano | findstr :5000
-taskkill /PID [process_id] /F
-
-# Or use a different port
-set PORT=3000 && npm run dev
-```
-
-#### 3. **Google API Authentication Error**
-```
-ApiError: PERMISSION_DENIED
-```
-**Solution**: 
-1. Get a valid Google Gemini API key from [Google AI Studio](https://aistudio.google.com/)
-2. Add it to your `.env` file
-3. Restart the server
-
-#### 4. **Windows Socket Error**
-```
-Error: listen ENOTSUP: operation not supported on socket
-```
-**Solution**: This is fixed in the current version
-
-### Demo Mode
-If you don't have a Google Gemini API key, the app runs in demo mode with basic functionality.
-
-## 🔒 Security & Privacy
-
-- **Data Encryption**: All data transmission is encrypted
-- **User Privacy**: No personal health data is stored permanently
-- **Secure Authentication**: Firebase-based user authentication
-- **API Security**: Protected API endpoints with proper validation
-- **File Upload Security**: Secure file handling with type validation
-
-## 🚀 Deployment
-
-### Environment Variables
-```env
-GEMINI_API_KEY=your_gemini_api_key
-DATABASE_URL=your_database_connection_string
-NODE_ENV=production
-PORT=5000
-```
-
-### Build Commands
-```bash
-# Development
-npm run dev
-
-# Production build
-npm run build
-npm start
-
-# Type checking
-npm run check
-```
+---
 
 ## 🤝 Contributing
 
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
+
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit your changes (`git commit -m 'Add some amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
+
+---
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+---
+
 ## 📞 Support
 
-For support and questions:
 - **Emergency**: Call 108 (India)
 - **General Health**: Use the chat interface
-- **Technical Issues**: Create an issue in the repository
-
-## 🙏 Acknowledgments
-
-- **Google Gemini AI** for advanced language processing
-- **Radix UI** for accessible component primitives
-- **TailwindCSS** for utility-first styling
-- **React Community** for excellent tooling and libraries
-- **Indian Healthcare Community** for inspiration and guidance
+- **Technical Issues**: [Create an issue](https://github.com/your-username/swasthik/issues)
 
 ---
 
 <div align="center">
-  <strong>🏥 Swasthik - Bridging Healthcare Gaps with AI Technology 🏥</strong>
+
+**🏥 Bridging Healthcare Gaps with AI Technology 🏥**
+
+Made with ❤️ for rural and semi-urban communities across India
+
 </div>
