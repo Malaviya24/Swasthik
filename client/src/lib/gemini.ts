@@ -208,3 +208,64 @@ export async function transcribeAudio(audioBlob: Blob): Promise<string> {
     throw error;
   }
 }
+
+export interface VaccineSearchResult {
+  name: string;
+  description: string;
+  diseasesPrevented: string[];
+  ageGroups: string[];
+  schedule: string;
+  sideEffects: string[];
+  contraindications: string[];
+  cost: string;
+  availability: string;
+  sources: string[];
+  confidence: number;
+}
+
+export async function searchVaccineWithAI(query: string): Promise<VaccineSearchResult> {
+  try {
+    // Try multiple API base URL patterns
+    const possibleUrls = [
+      import.meta.env.VITE_API_URL,
+      'http://localhost:5000',
+      'https://localhost:5000',
+      window.location.origin,
+      ''
+    ].filter(Boolean);
+    
+    let lastError: Error | null = null;
+    
+    for (const baseUrl of possibleUrls) {
+      try {
+        const fullUrl = `${baseUrl}/api/vaccine-search`;
+        console.log('Trying API URL:', fullUrl);
+        
+        const response = await fetch(fullUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ query }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log('API call successful with URL:', fullUrl);
+          return data.result;
+        } else {
+          console.log(`API call failed with URL ${fullUrl}: ${response.status}`);
+          lastError = new Error(`HTTP error! status: ${response.status}`);
+        }
+      } catch (error) {
+        console.log(`API call error with URL ${baseUrl}:`, error);
+        lastError = error as Error;
+      }
+    }
+    
+    throw lastError || new Error('All API endpoints failed');
+  } catch (error) {
+    console.error('Error searching vaccine with AI:', error);
+    throw error;
+  }
+}

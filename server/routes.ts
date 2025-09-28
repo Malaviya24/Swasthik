@@ -1946,6 +1946,172 @@ Important: Return ONLY valid JSON. No additional text before or after. Always in
     }
   });
 
+  // Vaccine search endpoint with Gemini AI
+  app.post('/api/vaccine-search', async (req, res) => {
+    try {
+      const { query } = req.body;
+      
+      if (!query) {
+        return res.status(400).json({ error: 'Search query is required' });
+      }
+
+      if (!process.env.GEMINI_API_KEY) {
+        return res.status(500).json({ error: 'GEMINI_API_KEY not configured' });
+      }
+
+      const prompt = `You are Swasthik Vaccine Engine, an expert vaccine knowledge assistant for India. 
+
+Search for information about the vaccine: "${query}"
+
+Provide comprehensive vaccine information in this EXACT JSON format:
+
+{
+  "name": "Official vaccine name",
+  "description": "Brief description of what this vaccine prevents and its importance",
+  "diseasesPrevented": ["Disease 1", "Disease 2", "Disease 3"],
+  "ageGroups": ["newborn", "6-8w", "9-14y", "adult", "60+"],
+  "schedule": "Detailed vaccination schedule with timing and doses",
+  "sideEffects": ["Common side effect 1", "Common side effect 2", "Common side effect 3"],
+  "contraindications": ["Who should not get this vaccine", "Medical conditions to avoid"],
+  "cost": "Cost information in Indian Rupees (public vs private)",
+  "availability": "Where to get this vaccine in India",
+  "sources": ["Official source 1", "Official source 2"],
+  "confidence": 0.95
+}
+
+IMPORTANT RULES:
+- Focus on vaccines available in India
+- Use official names and terminology
+- Include accurate cost estimates in INR
+- Mention both government and private availability
+- Reference official sources like MoHFW, WHO, ICMR
+- Be specific about age groups and schedules
+- Include relevant contraindications for Indian population
+- Set confidence between 0.8-1.0 based on information certainty
+- Return ONLY valid JSON, no additional text
+
+If the vaccine is not available in India or not recognized, return:
+{
+  "name": "Vaccine not found",
+  "description": "This vaccine is not available or recognized in India",
+  "diseasesPrevented": [],
+  "ageGroups": [],
+  "schedule": "Not applicable",
+  "sideEffects": [],
+  "contraindications": [],
+  "cost": "Not available",
+  "availability": "Not available in India",
+  "sources": [],
+  "confidence": 0.0
+}`;
+
+      const aiClient = await getAI();
+      
+      // Retry logic for API overload errors
+      let response;
+      let retryCount = 0;
+      const maxRetries = 3;
+      
+      while (retryCount < maxRetries) {
+        try {
+          response = await aiClient.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
+          });
+          break; // Success, exit retry loop
+        } catch (apiError: any) {
+          retryCount++;
+          console.log(`Vaccine search API attempt ${retryCount} failed:`, apiError.message);
+          
+          // If it's a 503 error (overloaded) and we have retries left, wait and try again
+          if (apiError.status === 503 && retryCount < maxRetries) {
+            const waitTime = retryCount * 2000; // 2s, 4s, 6s
+            console.log(`Waiting ${waitTime}ms before retry ${retryCount + 1}...`);
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+            continue;
+          }
+          
+          // If it's not a 503 error or we've exhausted retries, throw the error
+          throw apiError;
+        }
+      }
+
+      // Parse AI response as JSON
+      const aiText = response.text || '';
+      
+      try {
+        // Clean the AI response to extract JSON from markdown code blocks
+        let cleanJson = aiText;
+        
+        // Remove markdown code block markers
+        if (cleanJson.includes('```json')) {
+          cleanJson = cleanJson.replace(/```json\s*/, '');
+        }
+        if (cleanJson.includes('```')) {
+          cleanJson = cleanJson.replace(/\s*```.*$/, '');
+        }
+        
+        // Remove any leading/trailing whitespace
+        cleanJson = cleanJson.trim();
+        
+        console.log('Cleaned JSON for parsing:', cleanJson.substring(0, 200) + '...');
+        
+        // Try to parse as JSON
+        const aiData = JSON.parse(cleanJson);
+        
+        // Validate and clean the response
+        const vaccineResult = {
+          name: aiData.name || query,
+          description: aiData.description || 'Vaccine information not available',
+          diseasesPrevented: Array.isArray(aiData.diseasesPrevented) ? aiData.diseasesPrevented : [],
+          ageGroups: Array.isArray(aiData.ageGroups) ? aiData.ageGroups : [],
+          schedule: aiData.schedule || 'Schedule information not available',
+          sideEffects: Array.isArray(aiData.sideEffects) ? aiData.sideEffects : [],
+          contraindications: Array.isArray(aiData.contraindications) ? aiData.contraindications : [],
+          cost: aiData.cost || 'Cost information not available',
+          availability: aiData.availability || 'Availability information not available',
+          sources: Array.isArray(aiData.sources) ? aiData.sources : [],
+          confidence: typeof aiData.confidence === 'number' ? aiData.confidence : 0.8
+        };
+        
+        console.log('Successfully parsed vaccine search result:', vaccineResult.name);
+        res.json({ result: vaccineResult });
+      } catch (jsonError) {
+        console.error('JSON parsing failed for vaccine search:', jsonError);
+        console.error('Raw AI response:', aiText.substring(0, 500) + '...');
+        
+        // Fallback response if JSON parsing fails
+        const fallbackResult = {
+          name: query,
+          description: `Information about ${query} vaccine. Please consult a healthcare professional for accurate details.`,
+          diseasesPrevented: ['Various diseases'],
+          ageGroups: ['Consult healthcare provider'],
+          schedule: 'Consult healthcare provider for schedule',
+          sideEffects: ['Consult healthcare provider'],
+          contraindications: ['Consult healthcare provider'],
+          cost: 'Cost varies by location and provider',
+          availability: 'Available at healthcare facilities',
+          sources: ['MoHFW', 'WHO'],
+          confidence: 0.5
+        };
+        
+        res.json({ result: fallbackResult });
+      }
+    } catch (error: any) {
+      console.error('Vaccine search error:', error);
+      
+      // Handle API overload with fallback
+      if (error.status === 503 || error.message?.includes('overloaded')) {
+        return res.status(503).json({ 
+          error: 'AI service is experiencing high demand. Please try again in a few minutes.',
+          fallback: true
+        });
+      }
+      
+      res.status(500).json({ error: 'Failed to search vaccine information' });
+    }
+  });
+
   // Reminders CRUD endpoints using storage
   app.get('/api/reminders', async (req, res) => {
     try {

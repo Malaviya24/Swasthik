@@ -185,6 +185,36 @@ export default function Landing() {
         </div>
       </div>
 
+      {/* Vaccine Tracker Section */}
+      <div className="py-12 sm:py-16 lg:py-20 bg-gradient-to-r from-blue-50 to-green-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8 sm:mb-12 lg:mb-16">
+            <div className="flex justify-center mb-6">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center">
+                <i className="fas fa-shield-alt text-3xl sm:text-4xl text-white"></i>
+              </div>
+            </div>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-3 sm:mb-4 lg:mb-6">
+              Vaccine Tracker
+            </h2>
+            <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-xs sm:max-w-2xl lg:max-w-4xl mx-auto px-4 mb-6 sm:mb-8">
+              Get personalized vaccination schedules and comprehensive vaccine information for India. 
+              Stay up-to-date with the latest immunization guidelines from official health authorities.
+            </p>
+            <Link href="/vaccine-tracker">
+              <Button 
+                size="lg" 
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 sm:px-8 lg:px-10 py-3 sm:py-4 lg:py-5 text-base sm:text-lg lg:text-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+                data-testid="button-vaccine-tracker"
+              >
+                <i className="fas fa-shield-alt mr-2"></i>
+                Access Vaccine Tracker
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+
       {/* Language Support Section */}
       <div className="py-12 sm:py-16 lg:py-20 bg-gradient-to-r from-green-50 to-blue-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -288,6 +318,7 @@ export default function Landing() {
                 <li><Link href="/symptom-checker" className="hover:text-white transition-colors">Symptom Checker</Link></li>
                 <li><Link href="/medications" className="hover:text-white transition-colors">Medications</Link></li>
                 <li><Link href="/health-centers" className="hover:text-white transition-colors">Find Health Centers</Link></li>
+                <li><Link href="/vaccine-tracker" className="hover:text-white transition-colors">Vaccine Tracker</Link></li>
               </ul>
             </div>
             <div>

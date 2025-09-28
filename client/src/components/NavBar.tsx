@@ -30,7 +30,8 @@ export function NavBar({ onShowSymptomChecker }: NavBarProps) {
     { href: '/medications', label: translate('nav.medications'), icon: 'fas fa-pills' },
     { href: '/health-centers', label: translate('nav.find_centers'), icon: 'fas fa-map-marker-alt' },
     { href: '/reminders', label: translate('nav.reminders'), icon: 'fas fa-calendar-check' },
-    { href: '/health-news', label: translate('nav.health_news'), icon: 'fas fa-newspaper' }
+    { href: '/health-news', label: translate('nav.health_news'), icon: 'fas fa-newspaper' },
+    { href: '/vaccine-tracker', label: 'Vaccine Tracker', icon: 'fas fa-shield-alt' }
   ];
 
   const languages = LANGUAGES;

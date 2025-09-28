@@ -14,6 +14,7 @@ import HealthCentersPage from "@/pages/health-centers-page";
 import RemindersPage from "@/pages/reminders-page";
 import LoginRedirect from "@/pages/login-redirect";
 import HealthNewsPage from "@/pages/health-news-page";
+import VaccineTrackerPage from "@/pages/vaccine-tracker-page";
 import { TestPage } from "@/pages/test-page";
 import NotFound from "@/pages/not-found";
 
@@ -33,6 +34,7 @@ function Router() {
         <Route path="/health-centers" component={HealthCentersPage}/>
         <Route path="/reminders" component={LoginRedirect}/>
         <Route path="/health-news" component={HealthNewsPage}/>
+        <Route path="/vaccine-tracker" component={VaccineTrackerPage}/>
         <Route path="/test" component={TestPage}/>
         <Route component={NotFound} />
       </Switch>
